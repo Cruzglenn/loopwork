@@ -1,0 +1,68 @@
+enum PayrollStatus {
+  DRAFT
+  APPROVED
+  PAID
+}
+
+enum PayPeriod {
+  WEEKLY
+  BIWEEKLY
+  SEMIMONTHLY
+  MONTHLY
+}
+
+enum PayslipItemType {
+  ALLOWANCE
+  DEDUCTION
+}
+
+model EmployeeSalaryConfig {
+  id          String    @id @default(cuid())
+  employeeId  String    @unique
+  baseSalary  Float     @default(0)
+  payPeriod   PayPeriod @default(MONTHLY)
+  hourlyRate  Float?
+  currency    String    @default("USD")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model Payslip {
+  id              String        @id @default(cuid())
+  employeeId      String
+  periodStart     DateTime
+  periodEnd       DateTime
+  basicPay        Float         @default(0)
+  overtimePay     Float         @default(0)
+  allowancesTotal Float         @default(0)
+  deductionsTotal Float         @default(0)
+  grossPay        Float         @default(0)
+  netPay          Float         @default(0)
+  status          PayrollStatus @default(DRAFT)
+  paidAt          DateTime?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  employee        Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  items           PayslipItem[]
+
+  @@index([employeeId])
+  @@index([status])
+}
+
+model PayslipItem {
+  id        String          @id @default(cuid())
+  payslipId String
+  name      String
+  type      PayslipItemType
+  amount    Float           @default(0)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  payslip   Payslip         @relation(fields: [payslipId], references: [id], onDelete: Cascade)
+
+  @@index([payslipId])
+}

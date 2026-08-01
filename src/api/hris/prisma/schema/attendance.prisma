@@ -1,0 +1,49 @@
+enum AttendanceStatus {
+  CLOCKED_IN
+  CLOCKED_OUT
+  ON_BREAK
+}
+
+enum BreakType {
+  LUNCH
+  SHORT_BREAK
+  PERSONAL
+  OTHER
+}
+
+model AttendanceLog {
+  id               String           @id @default(cuid())
+  employeeId       String
+  date             DateTime
+  clockIn          DateTime
+  clockOut         DateTime?
+  status           AttendanceStatus @default(CLOCKED_IN)
+  totalWorkMinutes Int              @default(0)
+  totalBreakMinutes Int             @default(0)
+  notes            String?
+  isManual         Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  employee         Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  breaks           AttendanceBreak[]
+
+  @@index([employeeId, date])
+  @@index([date])
+}
+
+model AttendanceBreak {
+  id              String        @id @default(cuid())
+  attendanceLogId String
+  startTime       DateTime
+  endTime         DateTime?
+  durationMinutes Int?
+  type            BreakType     @default(LUNCH)
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  attendanceLog   AttendanceLog @relation(fields: [attendanceLogId], references: [id], onDelete: Cascade)
+
+  @@index([attendanceLogId])
+}
