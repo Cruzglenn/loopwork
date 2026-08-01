@@ -2,96 +2,106 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Open-source HRIS (Human Resource Information System) built with Next.js 15, TypeScript, Prisma, and PostgreSQL. Designed for small and mid-sized companies to manage employees, absences, documents, equipment, benefits, and more.
+**Loopwork** is a modern, open-source HRIS (Human Resource Information System) & Payroll management platform built with Next.js 15 (App Router), TypeScript, Prisma, and PostgreSQL. Designed for mid-sized teams to manage employee onboarding, attendance tracking, automated payroll runs, PDF payslips, absence management, equipment inventory, and role-based permissions.
 
-## What is Loopwork?
-
-Loopwork is a self-hosted HR management platform following Clean Architecture principles. It provides a complete suite of HR tools — from employee onboarding and leave management to document tracking and performance feedback — all within a single deployable application.
-
-![Loopwork Cover](docs/assets/loopwork_github_cover.png)
+---
 
 ## Features
 
-- **Employee Management** — profiles, onboarding, employment history, skills, education
-- **Absence Management** — leave requests, approval workflows, availability calendar, iCal export
-- **Document Management** — upload, categorize, track expiration dates, assign to employees or company
-- **Equipment Tracking** — inventory, assignments, changelog, status management
-- **Benefits Administration** — create benefit plans, assign to employees
-- **Performance Feedback** — schedule and track feedback sessions
-- **Role-Based Access Control** — granular permissions per resource and action (VIEW, CREATE, EDIT, DELETE, ASSIGN, EXPORT)
-- **CV Generation** — export employee profiles as PDF
-- **Multi-language Support** — English and Polish out of the box (extensible via next-intl)
-- **Field-Level Encryption** — sensitive data encrypted at the database level
-- **Email Notifications** — account invitations, password resets (Mailcatcher for development)
+- 👥 **Employee Management** — Complete profiles, onboarding, employment history, skills, education, and document attachments.
+- ⏱️ **Attendance System** — 1-click Clock In / Clock Out, Break tracking (Lunch, Short break), daily/weekly work duration logs, and real-time company attendance dashboard.
+- 💰 **Payroll Management** — Automated payroll run generation based on worked attendance hours, overtime, gross/net pay calculation, tax & statutory deductions, and 1-click PDF Payslip export (built with PDFKit).
+- 🏖️ **Absence Management** — Leave requests, approval workflows, availability calendar, and iCal calendar export.
+- 📁 **Document Management** — File upload, document categories, tracking expiration dates, and employee assignment.
+- 💻 **Equipment Tracking** — Inventory, employee assignments, changelogs, and status tracking.
+- 🎁 **Benefits Administration** — Create custom benefit plans and assign them to employees.
+- 🔐 **Granular RBAC System** — Flexible Role-Based Access Control per resource and action (`VIEW`, `CREATE`, `EDIT`, `DELETE`, `ASSIGN`, `EXPORT`).
+- 📄 **PDF Exporting** — Generate official PDF Payslips and Employee CVs on demand.
+- 🔒 **Field-Level Encryption** — Sensitive employee details encrypted at the database level via Prisma field-level encryption.
 
-### Screenshots
+---
 
-| | | | |
-|:---:|:---:|:---:|:---:|
-| [<img src="docs/assets/screen_login.png" width="200" alt="Login">](docs/assets/screen_login.png) | [<img src="docs/assets/screen_dashboard.png" width="200" alt="Dashboard">](docs/assets/screen_dashboard.png) | [<img src="docs/assets/screen_docs.png" width="200" alt="Documents">](docs/assets/screen_docs.png) | [<img src="docs/assets/screen_profile.png" width="200" alt="Employee Profile">](docs/assets/screen_profile.png) |
-| **Login** | **Dashboard** | **Documents** | **Employee Profile** |
-| [<img src="docs/assets/screen_absence.png" width="200" alt="Employee Absence">](docs/assets/screen_absence.png) | [<img src="docs/assets/screen_salary.png" width="200" alt="Salary">](docs/assets/screen_salary.png) | [<img src="docs/assets/screen_availability.png" width="200" alt="Availability">](docs/assets/screen_availability.png) | [<img src="docs/assets/screen_roles.png" width="200" alt="Roles">](docs/assets/screen_roles.png) |
-| **Employee Absence** | **Salary** | **Availability** | **Roles** |
-
-*Click any screenshot to view full size.*
-
-## Quick Start
+## Quick Start & Setup Guide
 
 ### Prerequisites
 
-- Node.js (see `.nvmrc` for version)
-- Yarn
-- Docker & Docker Compose
+- **Node.js** (v20+ recommended)
+- **npm** or **yarn**
+- **PostgreSQL 16** with PostGIS extension (or Docker & Docker Compose)
 
-### Setup
+### Installation Steps
 
 ```bash
-# 1. Clone and install
-git clone https://github.com/Bitnoise/loopwork.git
+# 1. Clone your repository
+git clone https://github.com/Cruzglenn/loopwork.git
 cd loopwork
-yarn install
 
-# 2. Configure environment
+# 2. Install dependencies
+npm install
+
+# 3. Configure environment variables
 cp .env.dist .env
+```
 
-# Edit .env and set required values:
-#   PRISMA_FIELD_ENCRYPTION_KEY — generate at https://cloak.47ng.com/
-#   JWT_SECRET — generate with: node -e "console.log(require('crypto').randomBytes(128).toString('hex'))"
+Edit your `.env` file and set the required secrets:
 
-# 3. Start database
-docker-compose up -d
+- `PRISMA_FIELD_ENCRYPTION_KEY` — generate at [cloak.47ng.com](https://cloak.47ng.com/)
+- `JWT_SECRET` — generate with:
+  ```bash
+  node -e "console.log(require('crypto').randomBytes(128).toString('hex'))"
+  ```
+- `DATABASE_URL` — set your PostgreSQL connection string:
+  ```env
+  DATABASE_URL="postgresql://loopwork:password@localhost:5432/loopwork?schema=public"
+  ```
 
-# 4. Setup database
-yarn prisma:generate
-yarn prisma:migrate
-yarn prisma:seed
+### Database Setup & Seeding
 
-# 5. Create your admin account
-yarn create:owner admin@example.com YourPassword123 John Doe
+```bash
+# 1. Generate Prisma client
+npm run prisma:generate
 
-# 6. Create your organization
-yarn organization:create MyOrganizationName
+# 2. Deploy database migrations
+npm run prisma:migrate:deploy
 
-# 7. Start the app
-yarn dev
+# 3. Seed default organization and system roles
+npm run prisma:seed
+
+# 4. Create your primary Admin account
+npx tsx -r ./polyfill.cjs src/api/hris/scripts/create-owner.ts admin@example.com YourPassword123 Admin User
+
+# 5. Create your organization
+npx tsx -r ./polyfill.cjs src/api/hris/scripts/create-organization.ts "My Company Name"
+
+# 6. (Optional) Load demo fixture data (50+ employees, attendance logs, equipment)
+npm run fixtures:load
+```
+
+### Start Development Server
+
+```bash
+npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) and sign in with your admin credentials.
 
+---
+
 ## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 15 (App Router), React 18, TypeScript |
-| Database | PostgreSQL 16 with PostGIS |
-| ORM | Prisma 5 with field-level encryption |
-| Auth | JWT with role-based access control |
-| UI | Tailwind CSS, React Aria Components |
-| Validation | Zod |
-| Email | Nodemailer (Mailcatcher for dev) |
-| Logging | Pino |
-| Architecture | Clean Architecture, Repository Pattern, Use Case Pattern |
-| Containerization | Docker, Docker Compose |
+|---|---|
+| **Framework** | Next.js 15 (App Router), React 18, TypeScript |
+| **Database** | PostgreSQL 16 with PostGIS extension |
+| **ORM** | Prisma 5 with field-level encryption |
+| **Authentication** | JWT with granular role-based access control (RBAC) |
+| **UI Components** | Tailwind CSS, React Aria Components |
+| **Validation** | Zod |
+| **PDF Generation** | PDFKit (server-side stream rendering) |
+| **Logging** | Pino |
+| **Architecture** | Clean Architecture, Repository Pattern, Use Case Pattern |
+
+---
 
 ## Project Structure
 
@@ -99,119 +109,51 @@ Open [http://localhost:3000](http://localhost:3000) and sign in with your admin 
 loopwork/
 ├── src/
 │   ├── api/hris/                    # Backend API (Clean Architecture)
-│   │   ├── prisma/                  # Schema, migrations, seed
+│   │   ├── prisma/                  # Schema files, migrations, seed
 │   │   ├── authentication/          # Auth domain
-│   │   ├── authorization/           # RBAC & permissions
+│   │   ├── authorization/           # RBAC & permission checking
 │   │   ├── employees/               # Employee management
+│   │   ├── attendance/              # Attendance & Clock In/Out domain
+│   │   ├── payroll/                 # Payroll & Payslips domain
 │   │   ├── company/                 # Company settings
-│   │   ├── absences/                # Leave management
+│   │   ├── absences/                # Leave & absence management
 │   │   ├── benefits/                # Employee benefits
-│   │   ├── documents/               # Document management
+│   │   ├── documents/               # Document tracking
 │   │   ├── feedback/                # Performance feedback
-│   │   ├── resources/               # Skills, equipment, etc.
-│   │   └── settings/                # Application settings
+│   │   └── resources/               # Skills & equipment
 │   │
 │   ├── app/                         # Next.js App Router
-│   │   ├── (auth)/                  # Sign-in, password recovery
-│   │   ├── (hris)/                  # Protected HR routes
-│   │   └── api/                     # API routes
+│   │   ├── (auth)/                  # Sign-in & password recovery
+│   │   ├── (hris)/                  # Protected HRIS dashboard & feature pages
+│   │   └── api/                     # PDF download API route handlers
 │   │
-│   ├── lib/ui/                      # Reusable UI components
-│   │
+│   ├── lib/ui/                      # Reusable UI component library (@/lib/ui)
 │   └── shared/                      # Constants, types, utils, services
 │
-├── messages/                        # i18n translations (en, pl)
-├── docker-compose.yml               # PostgreSQL + Mailcatcher
-├── Dockerfile                       # Production build
+├── messages/                        # i18n translation files (en.json, pl.json)
+├── docker-compose.yml               # PostgreSQL + Mailcatcher dev services
 └── package.json
 ```
 
-Each domain in `src/api/hris/` follows Clean Architecture:
-- **Model** (`model/`) — DTOs, repository interfaces, use cases
-- **Infrastructure** (`infrastructure/`) — Prisma repositories, controllers, ACLs, queries
+---
 
 ## Scripts Reference
 
-### Development
-
 | Command | Description |
-|---------|-------------|
-| `yarn dev` | Start development server |
-| `yarn build` | Build for production |
-| `yarn start` | Start production server |
-| `yarn lint` | Run ESLint + TypeScript check |
-| `yarn fix` | Auto-fix lint issues |
+|---|---|
+| `npm run dev` | Start local development server |
+| `npm run build` | Build Next.js app for production |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint + TypeScript check |
+| `npm run fix` | Auto-fix lint issues |
+| `npm run prisma:generate` | Generate Prisma client |
+| `npm run prisma:migrate:deploy` | Apply database migrations |
+| `npm run prisma:seed` | Seed default organization & OWNER role |
+| `npm run fixtures:load` | Load demo fixture data (50+ employees) |
+| `npm run nuke` | Clean reinstall (`.next`, `node_modules`) |
 
-### Database
-
-| Command | Description |
-|---------|-------------|
-| `yarn prisma:generate` | Generate Prisma client |
-| `yarn prisma:migrate` | Create and run migration |
-| `yarn prisma:migrate:deploy` | Apply migrations (production) |
-| `yarn prisma:reset` | Reset database (deletes all data) |
-| `yarn prisma:studio` | Open Prisma Studio GUI |
-| `yarn prisma:seed` | Seed default organization and roles |
-
-### User Management
-
-| Command | Description |
-|---------|-------------|
-| `yarn create:owner <email> <password> <firstName> <lastName>` | Create admin user with OWNER role |
-| `yarn promote:owner <email>` | Promote existing user to OWNER |
-| `yarn change:password <email> <newPassword>` | Reset a user's password |
-
-### Demo Data
-
-| Command | Description |
-|---------|-------------|
-| `yarn fixtures:load` | Load demo fixture data |
-| `yarn fixtures:clean` | Remove and reload fixtures |
-
-### Maintenance
-
-| Command | Description |
-|---------|-------------|
-| `yarn nuke` | Clean install (removes .next, node_modules, reinstalls) |
-
-## Environment Variables
-
-See `.env.dist` for all options. Key variables:
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `PRISMA_FIELD_ENCRYPTION_KEY` | Yes | Encryption key ([generate here](https://cloak.47ng.com/)) |
-| `JWT_SECRET` | Yes | Secret for JWT signing |
-| `NEXT_PUBLIC_APP_URL` | Yes | Application URL (e.g., `http://localhost:3000`) |
-| `ORGANIZATION_NAME` | No | Company name (default: "Loopwork") |
-| `NEXT_PUBLIC_THEME` | No | UI theme: `hris` (default) or your own custom theme |
-| `NEXT_PUBLIC_DEFAULT_LANGUAGE` | No | Default locale: `en` or `pl` |
-
-## Local Services
-
-When running with Docker Compose:
-
-| Service | URL |
-|---------|-----|
-| Application | http://localhost:3000 |
-| Mailcatcher UI | http://localhost:1080 |
-| PostgreSQL | localhost:5432 |
-| Prisma Studio | `yarn prisma:studio` |
-
-## Documentation
-
-- **[Getting Started](docs/getting-started/)** — [Installation](docs/getting-started/installation.md), [Configuration](docs/getting-started/configuration.md)
-- **[Architecture](docs/architecture/)** — [Overview](docs/architecture/overview.md), [RBAC](docs/architecture/rbac.md)
-- **[Guides](docs/guides/)** — [Deployment](docs/guides/deployment.md), [User Management](docs/guides/user-management.md)
-- **[Development](docs/development/)** — [Project Structure](docs/development/project-structure.md), [Coding Standards](docs/development/coding-standards.md)
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code style, and pull request guidelines.
+---
 
 ## License
 
-MIT License - Copyright (c) 2024-2026 [Bitnoise](https://bitnoise.pl)
-
-See [LICENSE](LICENSE) for details.
+Distributed under the MIT License.
