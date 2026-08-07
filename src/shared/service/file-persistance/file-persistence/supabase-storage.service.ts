@@ -38,14 +38,19 @@ export function supabaseStorageService(): FileUpload {
       const fileBuffer = await file.arrayBuffer();
       const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${bucket}/${objectPath}`;
 
+      const headers: Record<string, string> = {
+        'x-upsert': 'true',
+        'Content-Type': file.type || 'application/octet-stream',
+      };
+
+      if (SUPABASE_ANON_KEY) {
+        headers['Authorization'] = `Bearer ${SUPABASE_ANON_KEY}`;
+        headers['apikey'] = SUPABASE_ANON_KEY;
+      }
+
       const response = await fetch(uploadUrl, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          apikey: SUPABASE_ANON_KEY,
-          'x-upsert': 'true',
-          'Content-Type': file.type || 'application/octet-stream',
-        },
+        headers,
         body: fileBuffer,
       });
 
@@ -75,14 +80,19 @@ export function supabaseStorageService(): FileUpload {
       const { bucket, objectPath } = getBucketAndPath(dirPath, organizationId, fileName);
       const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${bucket}/${objectPath}`;
 
+      const headers: Record<string, string> = {
+        'x-upsert': 'true',
+        'Content-Type': 'application/octet-stream',
+      };
+
+      if (SUPABASE_ANON_KEY) {
+        headers['Authorization'] = `Bearer ${SUPABASE_ANON_KEY}`;
+        headers['apikey'] = SUPABASE_ANON_KEY;
+      }
+
       const response = await fetch(uploadUrl, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          apikey: SUPABASE_ANON_KEY,
-          'x-upsert': 'true',
-          'Content-Type': 'application/octet-stream',
-        },
+        headers,
         body: new Uint8Array(buffer),
       });
 
@@ -106,14 +116,17 @@ export function supabaseStorageService(): FileUpload {
         const objectPath = pathWithoutPrefix.substring(firstSlash + 1);
 
         const fileUrl = `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${objectPath}`;
-        const response = await fetch(fileUrl, {
-          headers: {
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-            apikey: SUPABASE_ANON_KEY,
-          },
-        });
+        const headers: Record<string, string> = {};
+
+        if (SUPABASE_ANON_KEY) {
+          headers['Authorization'] = `Bearer ${SUPABASE_ANON_KEY}`;
+          headers['apikey'] = SUPABASE_ANON_KEY;
+        }
+
+        const response = await fetch(fileUrl, { headers });
 
         if (!response.ok) {
+          logger.error({ status: response.status, fileUrl }, 'Supabase getFile failed');
           return fallback.getFile(filePath, onError);
         }
 
@@ -137,12 +150,16 @@ export function supabaseStorageService(): FileUpload {
         const objectPath = pathWithoutPrefix.substring(firstSlash + 1);
 
         const deleteUrl = `${SUPABASE_URL}/storage/v1/object/${bucket}/${objectPath}`;
+        const headers: Record<string, string> = {};
+
+        if (SUPABASE_ANON_KEY) {
+          headers['Authorization'] = `Bearer ${SUPABASE_ANON_KEY}`;
+          headers['apikey'] = SUPABASE_ANON_KEY;
+        }
+
         const response = await fetch(deleteUrl, {
           method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-            apikey: SUPABASE_ANON_KEY,
-          },
+          headers,
         });
 
         return response.ok;
