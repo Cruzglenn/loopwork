@@ -11,8 +11,17 @@ export * from '../../../../.prisma-generated/organization-client';
 // Global for singleton pattern in development
 const globalForPrisma = global as unknown as { prisma: PrismaClient | undefined };
 
+const getEncryptionKey = (): string => {
+  const rawKey = process.env.PRISMA_FIELD_ENCRYPTION_KEY || '';
+  return rawKey
+    .trim()
+    .replace(/^["']|["']$/g, '')
+    .trim();
+};
+
 // Create singleton Prisma client with field encryption
 const createPrismaClient = () => {
+  const encryptionKey = getEncryptionKey();
   const client = new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
     datasources: {
@@ -22,7 +31,7 @@ const createPrismaClient = () => {
     },
   }).$extends(
     fieldEncryptionExtension({
-      encryptionKey: process.env.PRISMA_FIELD_ENCRYPTION_KEY!,
+      encryptionKey,
       dmmf: Prisma.dmmf,
     }),
   ) as PrismaClient;
