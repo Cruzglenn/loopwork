@@ -30,6 +30,7 @@ const FONTS = {
   bold: 'Roboto-Bold',
   oblique: 'Roboto-Italic',
   boldOblique: 'Roboto-BoldItalic',
+  signature: 'Allura-Regular',
 };
 
 const PAGE = {
@@ -58,6 +59,7 @@ export function buildPayslipPdf(payslip: PayslipDto, companyName = 'Loopwork Inc
     doc.registerFont('Roboto-Bold', path.join(FONTS_DIR, 'Roboto-Bold.ttf'));
     doc.registerFont('Roboto-Italic', path.join(FONTS_DIR, 'Roboto-Italic.ttf'));
     doc.registerFont('Roboto-BoldItalic', path.join(FONTS_DIR, 'Roboto-BoldItalic.ttf'));
+    doc.registerFont('Allura-Regular', path.join(FONTS_DIR, 'Allura-Regular.ttf'));
 
     const buffers: Buffer[] = [];
     doc.on('data', (chunk: Buffer) => buffers.push(chunk));
@@ -429,6 +431,22 @@ export function buildPayslipPdf(payslip: PayslipDto, companyName = 'Loopwork Inc
       .strokeColor(COLORS.primary)
       .lineWidth(1.5)
       .stroke();
+
+    // 6. Cursive Signature (Employee Name in Allura Font, no underline or "Employee Signature" label)
+    const employeeName = sanitizeText(
+      `${payslip.employee?.firstName || ''} ${payslip.employee?.lastName || ''}`,
+    ).trim();
+    if (employeeName) {
+      currentY += 24;
+      doc
+        .font(FONTS.signature)
+        .fontSize(24)
+        .fillColor(COLORS.primaryDark)
+        .text(employeeName, PAGE.marginLeft + contentWidth - 220, currentY, {
+          width: 220,
+          align: 'right',
+        });
+    }
 
     // 7. Page Footer
     const footerY = pageHeight - PAGE.marginBottom;
