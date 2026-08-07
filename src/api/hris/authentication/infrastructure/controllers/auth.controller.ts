@@ -209,6 +209,7 @@ export function authController(organizationContext: OrganizationContext): AuthCo
       ]);
       return {
         ...employee,
+        id: employee?.id || identityId,
         locale,
         dateFormat,
         roles: identity.getPayload().roles,

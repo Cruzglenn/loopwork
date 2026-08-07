@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import { ApiError, AUTH_ROUTES } from '@/shared';
 import { type CUID } from '@/api/hris/types';
 import { authenticateToken } from '@/api/hris/authorization/authenticateToken';
-import { getUnauthenticatedRedirectUrl } from '@/shared/utils/redirect';
 import { logger } from '@/shared/service/pino';
 import { prisma } from '../prisma/client';
 import { permissionRepository } from './infrastructure/database/repositories/permissionRepository';
@@ -24,14 +24,14 @@ const safeCache = <T extends (...args: any[]) => any>(fn: T): T => {
 const verifyTokenAndGetIdentity = safeCache(async () => {
   const token = (await cookies()).get('Authorization');
   if (!token) {
-    return redirect((await getUnauthenticatedRedirectUrl(AUTH_ROUTES.signIn)).toString());
+    redirect(AUTH_ROUTES.signIn);
   }
   try {
-    // Single organization - no subdomain needed
     return await authenticateToken(token.value);
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     logger.warn('Authentication error', error);
-    return redirect((await getUnauthenticatedRedirectUrl(AUTH_ROUTES.signIn)).toString());
+    redirect(AUTH_ROUTES.signIn);
   }
 });
 
@@ -78,8 +78,9 @@ export function requirePermission<TArgs extends unknown[], TReturn>(
 
       return await callback(checker, ...args);
     } catch (error: unknown) {
+      if (isRedirectError(error)) throw error;
       if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
-        return redirect(getUnauthenticatedRedirectUrl(AUTH_ROUTES.signIn).toString());
+        redirect(AUTH_ROUTES.signIn);
       }
       throw error;
     }
@@ -94,9 +95,10 @@ export function privateRoute<TArgs extends unknown[], TReturn>(
       const checker = await getPermissionChecker();
       return await callback(checker, ...args);
     } catch (error: unknown) {
+      if (isRedirectError(error)) throw error;
       if (error instanceof ApiError && error.status === 401) {
         logger.warn(`Unauthorized ApiError: ${error.message} with ${error.status}`, error);
-        return redirect(getUnauthenticatedRedirectUrl(AUTH_ROUTES.signIn).toString());
+        redirect(AUTH_ROUTES.signIn);
       }
 
       throw error;
@@ -118,9 +120,10 @@ export function isOwnerRoute<TArgs extends unknown[], TReturn>(
 
       return await callback(checker, ...args);
     } catch (error: unknown) {
+      if (isRedirectError(error)) throw error;
       if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
         logger.warn(`Unauthorized ApiError: ${error.message} with ${error.status}`, error);
-        return redirect(getUnauthenticatedRedirectUrl(AUTH_ROUTES.signIn).toString());
+        redirect(AUTH_ROUTES.signIn);
       }
       throw error;
     }

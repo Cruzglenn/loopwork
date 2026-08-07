@@ -38,20 +38,20 @@ export default async function EmployeeGeneralContent({ id }: Props): Promise<JSX
   // Get roles data if user can manage roles
   let allRoles: Awaited<ReturnType<typeof api.authorization.roles.getAllRoles>> = [];
   let assignedRoles: Awaited<ReturnType<typeof api.authorization.roles.getRolesForIdentity>> = [];
+  let identityInfo: { email: string; roles: string[] } | null = null;
 
   if (canManageRoles) {
-    allRoles = await api.authorization.roles.getAllRoles();
-    if (employee.identityId) {
-      assignedRoles = await api.authorization.roles.getRolesForIdentity(employee.identityId);
-    }
-  }
-
-  // Get identity info if exists
-  let identityInfo: { email: string; roles: string[] } | null = null;
-  if (canManageRoles && employee.identityId) {
-    const identity = await api.auth.getIdentityById(employee.identityId);
-    if (identity) {
-      identityInfo = identity;
+    try {
+      allRoles = await api.authorization.roles.getAllRoles();
+      if (employee.identityId) {
+        assignedRoles = await api.authorization.roles.getRolesForIdentity(employee.identityId);
+        const identity = await api.auth.getIdentityById(employee.identityId);
+        if (identity) {
+          identityInfo = identity;
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching role/identity info in Profile view:', err);
     }
   }
 
