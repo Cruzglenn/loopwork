@@ -12,8 +12,10 @@ export async function GET(request: NextRequest, { params }: { params: { photoId:
   if (!photo) return new Response();
 
   // Convert database path format (/uploads/...) to actual filesystem path (_uploads/...)
-  const actualFilePath = photo.filePath.replace(/^\/uploads\//, '_uploads/');
-  const buffer = await api.documents.getFile('persistent-volume', actualFilePath);
+  const actualFilePath = photo.filePath.startsWith('supabase://')
+    ? photo.filePath
+    : photo.filePath.replace(/^\/uploads\//, '_uploads/');
+  const buffer = await api.documents.getFile('supabase-storage', actualFilePath);
 
   if (download) {
     const fileName = photo.filePath.split('/').pop();

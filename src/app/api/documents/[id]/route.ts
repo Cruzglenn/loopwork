@@ -23,8 +23,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   const fileName = document.filePath.split('/').pop();
 
   // Convert database path format (/uploads/...) to actual filesystem path (_uploads/...)
-  const actualFilePath = document.filePath.replace(/^\/uploads\//, '_uploads/');
-  const buffer = await api.documents.getFile('persistent-volume', actualFilePath);
+  const actualFilePath = document.filePath.startsWith('supabase://')
+    ? document.filePath
+    : document.filePath.replace(/^\/uploads\//, '_uploads/');
+  const buffer = await api.documents.getFile('supabase-storage', actualFilePath);
 
   return new Response(buffer as unknown as BodyInit, {
     headers: {

@@ -88,7 +88,7 @@ export function documentsController(organizationContext: OrganizationContext): D
 
   // Implementations
   const documentsRepositoryImpl = documentsRepository(db);
-  const filePersistenceServiceImpl = filePersistenceFactory('persistent-volume');
+  const filePersistenceServiceImpl = filePersistenceFactory('supabase-storage');
   const documentsQueriesImpl = documentsQueries(organizationContext);
   const documentCategoryRepositoryImpl = documentCategoryRepository(db);
   const employeeQueriesImpl = employeeQueries(organizationContext);

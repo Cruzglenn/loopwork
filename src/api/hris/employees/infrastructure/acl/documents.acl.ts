@@ -44,7 +44,7 @@ export function documentsAcl(organizationContext: OrganizationContext): Document
   const deleteEmployeeDocumentByFilePath = async (filePath: string) => {
     const api = instantiateHrisApi(organizationContext);
 
-    return api.documents.deleteFileByFilePath('persistent-volume', filePath);
+    return api.documents.deleteFileByFilePath('supabase-storage', filePath);
   };
 
   const deleteEmployeeDocuments = async (documentIds: CUID[]) => {
@@ -62,7 +62,7 @@ export function documentsAcl(organizationContext: OrganizationContext): Document
   const deleteEmployeeDirectory = async (dirPath: string, force?: boolean) => {
     const api = instantiateHrisApi(organizationContext);
 
-    return await api.documents.deleteDirectory('persistent-volume', dirPath, force);
+    return await api.documents.deleteDirectory('supabase-storage', dirPath, force);
   };
 
   const updateEmployeeDocument = async (id: CUID, document: UpdateEmployeeDocumentDto) => {

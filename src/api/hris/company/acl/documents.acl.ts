@@ -5,13 +5,13 @@ export function documentsAcl(): DocumentsAcl {
   const uploadCompanyLogo = async (logo: File) => {
     const api = hrisApi;
 
-    return api.documents.uploadFile('persistent-volume', logo, 'photos');
+    return api.documents.uploadFile('supabase-storage', logo, 'photos');
   };
 
   const deleteCompanyLogo = async (logoPath: string) => {
     const api = hrisApi;
 
-    return api.documents.deleteFileByFilePath('persistent-volume', logoPath);
+    return api.documents.deleteFileByFilePath('supabase-storage', logoPath);
   };
 
   return {
