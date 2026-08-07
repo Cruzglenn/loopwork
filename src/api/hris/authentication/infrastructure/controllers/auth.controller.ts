@@ -1,3 +1,14 @@
+import * as React from 'react';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const safeCache = <T extends (...args: any[]) => any>(fn: T): T => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (typeof (React as any).cache === 'function') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (React as any).cache(fn);
+  }
+  return fn;
+};
 import { type NewIdentityDto } from '@/api/hris/authentication/model/dtos/identity.dto';
 import { identityRepository } from '@/api/hris/authentication/infrastructure/database/repositories/identityRepository';
 import { type CUID } from '@/api/hris/types';
@@ -182,7 +193,7 @@ export function authController(organizationContext: OrganizationContext): AuthCo
     login: async (email: string, password: string): Promise<string> => {
       return loginWithEmailAndPassword(authenticationRepository, identityRepositoryImpl)(email, password);
     },
-    getMe: async () => {
+    getMe: safeCache(async () => {
       const identityId = await getLoggedIdentityId();
 
       const identity = await identityRepositoryImpl.getIdentityById(identityId);
@@ -202,6 +213,6 @@ export function authController(organizationContext: OrganizationContext): AuthCo
         dateFormat,
         roles: identity.getPayload().roles,
       };
-    },
+    }),
   };
 }

@@ -1,4 +1,4 @@
-import { cache } from 'react';
+import * as React from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { ApiError, AUTH_ROUTES } from '@/shared';
@@ -11,7 +11,17 @@ import { permissionRepository } from './infrastructure/database/repositories/per
 import { createPermissionChecker, type PermissionChecker } from './permissionChecker';
 import { type PermissionAction, type ResourceType } from './permissions';
 
-async function verifyTokenAndGetIdentity() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const safeCache = <T extends (...args: any[]) => any>(fn: T): T => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (typeof (React as any).cache === 'function') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (React as any).cache(fn);
+  }
+  return fn;
+};
+
+const verifyTokenAndGetIdentity = safeCache(async () => {
   const token = (await cookies()).get('Authorization');
   if (!token) {
     return redirect((await getUnauthenticatedRedirectUrl(AUTH_ROUTES.signIn)).toString());
@@ -23,14 +33,14 @@ async function verifyTokenAndGetIdentity() {
     logger.warn('Authentication error', error);
     return redirect((await getUnauthenticatedRedirectUrl(AUTH_ROUTES.signIn)).toString());
   }
-}
+});
 
 export async function getLoggedIdentityId(): Promise<CUID> {
   return (await verifyTokenAndGetIdentity()).id;
 }
 
 // Request-scoped permission checker with caching
-export const getPermissionChecker = cache(async (): Promise<PermissionChecker> => {
+export const getPermissionChecker = safeCache(async (): Promise<PermissionChecker> => {
   const identity = await verifyTokenAndGetIdentity();
 
   // Single organization - use singleton prisma client

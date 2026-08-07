@@ -1,4 +1,14 @@
-import { cache } from 'react';
+import * as React from 'react';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const safeCache = <T extends (...args: any[]) => any>(fn: T): T => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (typeof (React as any).cache === 'function') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (React as any).cache(fn);
+  }
+  return fn;
+};
 import { ApiError, type Nullable, type CUID, type EmployeeListOrderBy, ITEMS_PER_PAGE } from '@/shared';
 import { type UpdateEmployeeGeneralInfoSchema } from '@/api/hris/employees/infrastructure/controllers/schemas';
 import { employeeQueries, employeesSkillQueries } from '@/api/hris/employees/infrastructure/database/queries';
@@ -69,7 +79,7 @@ export function employeesController(organizationContext: OrganizationContext): E
   // Request-scoped memo for the caller's own employee record. A profile page renders
   // metadata, layout, header, and content — each triggering an access check — so we
   // dedupe the identity→employee lookup with React's per-request `cache`.
-  const loadCurrentEmployee = cache(async (identityId: CUID) =>
+  const loadCurrentEmployee = safeCache(async (identityId: CUID) =>
     employeeQueriesInstance.getEmployeeByIdentityId(identityId),
   );
 

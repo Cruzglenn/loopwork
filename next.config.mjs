@@ -3,6 +3,10 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  outputFileTracingIncludes: {
+    '/*': ['./.prisma-generated/organization-client/**/*'],
+    '/**': ['./.prisma-generated/organization-client/**/*'],
+  },
   experimental: {
     esmExternals: true,
     serverActions: {
@@ -33,7 +37,7 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/:path*{/}?',
+        source: '/:path*',
         headers: [
           {
             key: 'X-Accel-Buffering',
