@@ -25,31 +25,35 @@ export function PhotoInput({ defaultPhotoSrc, label, id, errorMessage, name, onD
     const rawFile = event.currentTarget.files?.[0];
     if (!rawFile) return;
 
-    try {
-      setIsCompressing(true);
-      setFileError(null);
-
-      // Auto-compress image to WebP client-side
-      const file = await compressImageToWebP(rawFile);
-
-      if (file.size > MAX_FILE_SIZE) {
-        setFileError(`File size must be under 4 MB (${(file.size / 1024 / 1024).toFixed(1)} MB selected)`);
-        setUploadedPhoto(undefined);
-        if (inputRef.current) {
-          const dt = new DataTransfer();
-          inputRef.current.files = dt.files;
-        }
-        return;
-      }
-
-      // Replace file input's files with the compressed WebP file so Form submits the WebP File
+    if (rawFile.size > MAX_FILE_SIZE) {
+      setFileError(`File size must be under 4 MB (${(rawFile.size / 1024 / 1024).toFixed(1)} MB selected)`);
+      setUploadedPhoto(undefined);
       if (inputRef.current) {
         const dt = new DataTransfer();
-        dt.items.add(file);
         inputRef.current.files = dt.files;
       }
+      return;
+    }
 
-      setUploadedPhoto(file);
+    setFileError(null);
+
+    try {
+      setIsCompressing(true);
+      // Auto-compress image to WebP client-side
+      const compressedFile = await compressImageToWebP(rawFile);
+
+      // Attempt to replace file input's files with the compressed WebP file
+      if (inputRef.current) {
+        try {
+          const dt = new DataTransfer();
+          dt.items.add(compressedFile);
+          inputRef.current.files = dt.files;
+        } catch {
+          // If browser rejects DataTransfer, rawFile remains in input.files
+        }
+      }
+
+      setUploadedPhoto(compressedFile);
     } catch {
       setUploadedPhoto(rawFile);
     } finally {

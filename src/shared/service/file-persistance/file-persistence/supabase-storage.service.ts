@@ -3,8 +3,17 @@ import { type FileUpload, type ErrorCallback } from '@/api/hris/documents/model/
 import { logger } from '@/shared/service/pino';
 import { persistentVolumeService } from './persistent-volume.service';
 
-const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/$/, '');
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const SUPABASE_URL = (
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.SUPABASE_URL ||
+  'https://eygaannaqiztkkxfkpsh.supabase.co'
+).replace(/\/$/, '');
+
+const SUPABASE_ANON_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_KEY ||
+  '';
 
 export function supabaseStorageService(): FileUpload {
   const fallback = persistentVolumeService();

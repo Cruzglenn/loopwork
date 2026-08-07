@@ -17,7 +17,7 @@ export const PhotoUploadButton = forwardRef<HTMLInputElement, Props>(
     return (
       <>
         <input
-          accept=".jpg, .jpeg, .png"
+          accept="image/*, .jpg, .jpeg, .png, .webp"
           className="hidden"
           multiple={multiple}
           ref={inputRef}
