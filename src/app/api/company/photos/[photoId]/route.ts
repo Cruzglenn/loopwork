@@ -1,6 +1,16 @@
+import { extname } from 'path';
 import { type NextRequest } from 'next/server';
 import { hrisApi } from '@/api/hris';
 import { encodeFilenameForHeader } from '@/shared';
+
+const MIME_TYPES: Record<string, string> = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml',
+};
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -9,25 +19,35 @@ export async function GET(request: NextRequest) {
   const api = hrisApi;
   const photo = await api.company.getCompanyLogo();
 
-  if (!photo) return new Response();
+  if (!photo) return new Response('Photo not found', { status: 404 });
 
-  // Convert database path format (/uploads/...) to actual filesystem path (_uploads/...)
-  const actualFilePath = photo.filePath.replace(/^\/uploads\//, '_uploads/');
-  const buffer = await api.documents.getFile('persistent-volume', actualFilePath);
+  const actualFilePath = photo.filePath.startsWith('supabase://')
+    ? photo.filePath
+    : photo.filePath.replace(/^\/uploads\//, '_uploads/');
+
+  const buffer = await api.documents.getFile('supabase-storage', actualFilePath);
 
   if (!buffer) {
     return new Response('Photo not found', { status: 404 });
   }
 
-  if (download) {
-    const fileName = photo.filePath.split('/').pop();
+  const fileName = photo.filePath.split('/').pop() || 'photo';
+  const ext = extname(fileName).toLowerCase();
+  const contentType = MIME_TYPES[ext] ?? 'image/png';
 
+  if (download) {
     return new Response(buffer as unknown as BodyInit, {
       headers: {
         'Content-Disposition': `attachment; ${encodeFilenameForHeader(fileName)}`,
+        'Content-Type': contentType,
       },
     });
   }
 
-  return new Response(buffer as unknown as BodyInit);
+  return new Response(buffer as unknown as BodyInit, {
+    headers: {
+      'Content-Type': contentType,
+      'Cache-Control': 'public, max-age=31536000, immutable',
+    },
+  });
 }

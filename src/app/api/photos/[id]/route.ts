@@ -99,7 +99,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       const photo = await api.company.getCompanyLogo();
 
       if (photo) {
-        buffer = await api.documents.getFile('persistent-volume', photo.filePath);
+        const actualFilePath = photo.filePath.startsWith('supabase://')
+          ? photo.filePath
+          : photo.filePath.replace(/^\/uploads\//, '_uploads/');
+        buffer = await api.documents.getFile('supabase-storage', actualFilePath);
         fileName = photo.filePath.split('/').pop();
       }
     }

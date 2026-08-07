@@ -46,7 +46,7 @@ export async function updateCompany(
     return { ...prevState, form, ...handleActionError(err) };
   }
 
-  revalidatePath(HRIS_ROUTES.settings.general);
+  revalidatePath(HRIS_ROUTES.company.general);
 
   return {
     form: {

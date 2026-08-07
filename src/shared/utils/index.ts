@@ -21,3 +21,4 @@ export * from './parse-to-features';
 export * from './parseToSuggestions';
 export * from './get-column-layout';
 export * from './encode-filename-for-header';
+export * from './compress-image';
