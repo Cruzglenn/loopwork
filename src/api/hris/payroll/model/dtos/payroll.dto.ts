@@ -74,4 +74,9 @@ export type CompanyPayrollOverviewDto = {
   totalNetPay: number;
   totalDeductions: number;
   payslips: PayslipDto[];
+  page: number;
+  perPage: number;
+  totalPages: number;
+  nextPage: number | null;
+  prevPage: number | null;
 };

@@ -1,3 +1,5 @@
+import { notFound } from 'next/navigation';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import { type CUID } from '@/shared';
 import { hrisApi } from '@/api/hris';
 import {
@@ -18,12 +20,22 @@ type Props = {
 export default async function EmployeeGeneralContent({ id }: Props): Promise<JSX.Element> {
   const api = hrisApi;
 
-  const [employee, companyName, me, checker] = await Promise.all([
-    api.employees.getEmployeeGeneralInfo(id),
-    api.employees.getEmployeeOrganizationName(),
-    api.auth.getMe(),
-    getPermissionChecker(),
-  ]);
+  let employee;
+  let companyName;
+  let me;
+  let checker;
+
+  try {
+    [employee, companyName, me, checker] = await Promise.all([
+      api.employees.getEmployeeGeneralInfo(id),
+      api.employees.getEmployeeOrganizationName(),
+      api.auth.getMe(),
+      getPermissionChecker(),
+    ]);
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    notFound();
+  }
 
   // Map photosIds directly to Photo objects - photos are stored as file paths, not documents
   const photos: Photo[] = employee.photosIds.map((photoId) => ({

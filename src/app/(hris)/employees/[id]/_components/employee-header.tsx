@@ -1,5 +1,7 @@
 import { getTranslations as getNextTranslations } from 'next-intl/server';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import { getTranslations } from '@/shared/service/locale/get-translations';
 import { cn, type PropsWithClassName, type CUID, HRIS_ROUTES, parseString } from '@/shared';
 import { Avatar, Flag, Icon } from '@/lib/ui';
@@ -25,7 +27,18 @@ export async function EmployeeHeader({
   const t = await getTranslations();
   const tNext = await getNextTranslations();
 
-  const [me, employee] = await Promise.all([api.auth.getMe(), api.employees.getEmployeeById(employeeId)]);
+  let me;
+  let employee;
+  try {
+    [me, employee] = await Promise.all([api.auth.getMe(), api.employees.getEmployeeById(employeeId)]);
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    notFound();
+  }
+
+  if (!employee) {
+    notFound();
+  }
 
   const { firstName, lastName, _access, id, avatarId, role } = employee;
 

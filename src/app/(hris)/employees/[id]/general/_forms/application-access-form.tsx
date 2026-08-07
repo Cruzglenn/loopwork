@@ -16,6 +16,7 @@ import {
 import { type CUID, parseString } from '@/shared';
 import { useToast } from '@/lib/ui/hooks';
 import { type RoleListItemDto } from '@/api/hris/authorization/infrastructure/controllers/roles.controller';
+import { EMPLOYEE_GENERAL_TOASTS } from '@/shared/constants/toast-notifications';
 import { StringTools } from '@/shared/utils/string-tools';
 import { createIdentityAction, updateIdentityAction, deleteIdentityAction } from '../_actions';
 
@@ -49,10 +50,7 @@ function IdentityForm({
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(currentRole?.id || null);
 
   const handleSuccess = () => {
-    pushToast({
-      label: isUpdate ? 'Identity updated successfully' : 'Identity created successfully',
-      intent: 'success',
-    });
+    pushToast(isUpdate ? EMPLOYEE_GENERAL_TOASTS.IDENTITY_UPDATE : EMPLOYEE_GENERAL_TOASTS.IDENTITY_CREATE);
     onSuccess();
     router.refresh();
   };
@@ -228,11 +226,11 @@ export function ApplicationAccessForm({
 
     const result = await deleteIdentityAction(identityId, employeeId);
     if (result.status === 'success') {
-      pushToast({ label: 'Identity deleted successfully', intent: 'success' });
+      pushToast(EMPLOYEE_GENERAL_TOASTS.IDENTITY_DELETE);
       setIsDeleting(false);
       router.refresh();
     } else {
-      pushToast({ label: 'Failed to delete identity', intent: 'error' });
+      pushToast(EMPLOYEE_GENERAL_TOASTS.IDENTITY_DELETE_ERROR);
     }
   };
 

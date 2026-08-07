@@ -1174,6 +1174,12 @@
         },
         "otherInfo": {
           "success": "Aktualizacja zakończona pomyślnie"
+        },
+        "identity": {
+          "updateSuccess": "Tożsamość zaktualizowana pomyślnie",
+          "createSuccess": "Tożsamość utworzona pomyślnie",
+          "deleteSuccess": "Tożsamość usunięta pomyślnie",
+          "deleteError": "Błąd podczas usuwania tożsamości"
         }
       },
       "documents": {
@@ -1236,11 +1242,20 @@
         "assign": {
           "success": "Benefity zostały przypisane pomyślnie"
         }
+      },
+      "payroll": {
+        "generate": {
+          "success": "Pomyślnie wygenerowano listy płac",
+          "error": "Błąd podczas generowania listy płac"
+        }
       }
     },
     "settings": {
       "update": {
-        "success": "Aktualizacja zakończona pomyślnie"
+        "success": "Aktualizacja zakończona pomyślnie",
+        "changePassword": {
+          "success": "Hasło zostało zmienione pomyślnie"
+        }
       }
     },
     "equipment": {

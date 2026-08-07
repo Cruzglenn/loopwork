@@ -24,16 +24,20 @@ export function employeeAcl(organizationContext: OrganizationContext): EmployeeR
     getEmployeeByEmail: async (email: string) => {
       const hrisApi = instantiateHrisApi(organizationContext);
 
-      const employee = await hrisApi.employees.getEmployeeByEmail(email);
+      try {
+        const employee = await hrisApi.employees.getEmployeeByEmail(email);
 
-      return {
-        id: employee.id,
-        email,
-        firstName: employee.firstName,
-        lastName: employee.lastName,
-        avatarId: employee.avatarId,
-        status: employee.status,
-      };
+        return {
+          id: employee.id,
+          email,
+          firstName: employee.firstName,
+          lastName: employee.lastName,
+          avatarId: employee.avatarId,
+          status: employee.status,
+        };
+      } catch {
+        return null;
+      }
     },
   };
 }

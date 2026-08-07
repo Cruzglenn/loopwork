@@ -96,29 +96,33 @@ export function AbsencesGridList({
         {items.map((absence, index) => (
           <GridListItem
             key={absence.id}
-            className={cn('border-b border-divider py-2 flex items-center gap-x-6 text-sm', {
-              'border-y': index === 0,
-            })}
+            className={cn(
+              'flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-divider py-3 text-sm min-w-0',
+              {
+                'border-y': index === 0,
+              },
+            )}
             href={absence.issuer ? HRIS_ROUTES.employees.absence.base(absence.issuer.id) : undefined}
             id={absence.id}
           >
-            <div className="flex shrink-0 flex-col">
-              <span>{parseDate(absence.requestedAt, dateFormat)}</span>
-              <span
-                className={cn('text-[0.625rem]', {
-                  'text-orange-800': absence.status === 'PENDING',
-                  'text-green-800': absence.status === 'APPROVED',
-                  'text-red-900': absence.status === 'REJECTED',
-                })}
-              >
-                {t(`status.${absence.status.toLowerCase()}`)}
-              </span>
-            </div>
-            <div className="flex min-w-0 flex-1 flex-col">
-              <span>{absence.issuer ? `${absence.issuer.lastName} ${absence.issuer.firstName}` : '—'}</span>
-              <span className="flex gap-x-2.5 text-xxs font-semibold text-gray-600">
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <div className="flex items-center gap-2">
+                <span className="truncate font-semibold text-gray-900">
+                  {absence.issuer ? `${absence.issuer.lastName} ${absence.issuer.firstName}` : '—'}
+                </span>
                 <span
-                  className={cn('shrink-0', {
+                  className={cn('text-[0.65rem] font-medium px-1.5 py-0.5 rounded shrink-0', {
+                    'bg-orange-100 text-orange-800': absence.status === 'PENDING',
+                    'bg-green-100 text-green-800': absence.status === 'APPROVED',
+                    'bg-red-100 text-red-900': absence.status === 'REJECTED',
+                  })}
+                >
+                  {t(`status.${absence.status.toLowerCase()}`)}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-2 text-xs text-gray-500">
+                <span
+                  className={cn('font-medium shrink-0', {
                     'text-orange-800': absence.type === 'SICK',
                     'text-green-800': absence.type === 'HOLIDAY',
                     'text-blue-800': absence.type === 'PERSONAL',
@@ -126,15 +130,14 @@ export function AbsencesGridList({
                 >
                   {t(`type.${absence.type.toLowerCase()}`)}
                 </span>
-                <span className="block min-w-0 truncate">{absence.dateRange}</span>
-              </span>
-            </div>
-            {absence.description && (
-              <div className="flex min-w-0 max-w-[200px] flex-col">
-                <span className="line-clamp-2 text-xs text-gray-600">{absence.description}</span>
+                <span>•</span>
+                <span className="truncate">{absence.dateRange}</span>
               </div>
-            )}
-            <div className="ml-auto">
+              {absence.description && (
+                <p className="mt-0.5 line-clamp-1 text-xs text-gray-500">{absence.description}</p>
+              )}
+            </div>
+            <div className="shrink-0 self-center">
               <AbsencesMenu
                 absenceId={[absence.id]}
                 actions={actions}

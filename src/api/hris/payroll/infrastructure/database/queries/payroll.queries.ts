@@ -16,6 +16,8 @@ export type PayrollQueries = {
     endDate?: Date,
     statusFilter?: string,
     search?: string,
+    page?: number,
+    perPage?: number,
   ) => Promise<CompanyPayrollOverviewDto>;
 };
 
@@ -62,12 +64,14 @@ export function payrollQueries(db: OrganizationPrismaClient): PayrollQueries {
     endDate?: Date,
     statusFilter?: string,
     search?: string,
+    page: number = 1,
+    perPage: number = 10,
   ): Promise<CompanyPayrollOverviewDto> => {
     const now = new Date();
     const periodStart = startDate || new Date(now.getFullYear(), now.getMonth(), 1);
     const periodEnd = endDate || new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    const payslips = await db.payslip.findMany({
+    const allPayslips = await db.payslip.findMany({
       where: {
         ...(statusFilter && statusFilter !== 'ALL' && { status: statusFilter as PayrollStatusDto }),
         ...(search && {
@@ -94,16 +98,21 @@ export function payrollQueries(db: OrganizationPrismaClient): PayrollQueries {
       orderBy: { createdAt: 'desc' },
     });
 
-    const totalPayslips = payslips.length;
+    const totalPayslips = allPayslips.length;
     let totalGrossPay = 0;
     let totalNetPay = 0;
     let totalDeductions = 0;
 
-    payslips.forEach((slip) => {
+    allPayslips.forEach((slip) => {
       totalGrossPay += slip.grossPay;
       totalNetPay += slip.netPay;
       totalDeductions += slip.deductionsTotal;
     });
+
+    const totalPages = Math.ceil(totalPayslips / perPage) || 1;
+    const validPage = Math.max(1, Math.min(page, totalPages));
+    const startIndex = (validPage - 1) * perPage;
+    const paginatedPayslips = allPayslips.slice(startIndex, startIndex + perPage);
 
     return {
       periodStart,
@@ -112,7 +121,12 @@ export function payrollQueries(db: OrganizationPrismaClient): PayrollQueries {
       totalGrossPay: Math.round(totalGrossPay),
       totalNetPay: Math.round(totalNetPay),
       totalDeductions: Math.round(totalDeductions),
-      payslips: payslips as unknown as PayslipDto[],
+      payslips: paginatedPayslips as unknown as PayslipDto[],
+      page: validPage,
+      perPage,
+      totalPages,
+      nextPage: validPage < totalPages ? validPage + 1 : null,
+      prevPage: validPage > 1 ? validPage - 1 : null,
     };
   };
 

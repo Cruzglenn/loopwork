@@ -53,8 +53,10 @@ export function payrollController(organization: OrganizationContext) {
     endDate?: Date,
     statusFilter?: string,
     search?: string,
+    page?: number,
+    perPage?: number,
   ) => {
-    return queries.getCompanyPayrollOverview(startDate, endDate, statusFilter, search);
+    return queries.getCompanyPayrollOverview(startDate, endDate, statusFilter, search, page, perPage);
   };
 
   return {

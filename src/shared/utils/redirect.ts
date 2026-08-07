@@ -19,11 +19,16 @@ export async function getUnauthenticatedRedirectUrl(path: string): Promise<URL> 
 
 export async function getRedirectUrl(path: string): Promise<URL> {
   const headersList = await headers();
-  const host = process.env.NEXT_PUBLIC_APP_URL
-    ? process.env.NEXT_PUBLIC_APP_URL.replace(/^https?:\/\//, '')
-    : (headersList.get('Host') as string);
+  const host =
+    headersList.get('x-forwarded-host') ||
+    headersList.get('host') ||
+    (process.env.NEXT_PUBLIC_APP_URL
+      ? process.env.NEXT_PUBLIC_APP_URL.replace(/^https?:\/\//, '')
+      : 'localhost:3000');
 
-  const proto = <string>headersList.get('X-Forwarded-Proto') || 'http';
+  const proto =
+    (headersList.get('x-forwarded-proto') as string) ||
+    (process.env.NODE_ENV === 'production' ? 'https' : 'http');
   const url = `${proto}://${host}`;
 
   return new URL(path, url);

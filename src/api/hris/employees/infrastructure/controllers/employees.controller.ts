@@ -236,12 +236,7 @@ export function employeesController(organizationContext: OrganizationContext): E
 
   const getEmployeeOrganizationName = async (_checker: PermissionChecker) => {
     const organizationName = await getOrganizationNameAcl();
-
-    if (!organizationName) {
-      throw new ApiError(404, 'Organization name not found');
-    }
-
-    return organizationName;
+    return organizationName ?? '';
   };
 
   const getEmployeeByEmail = async (email: string) => {

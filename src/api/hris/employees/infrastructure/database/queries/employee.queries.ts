@@ -58,13 +58,54 @@ export function employeeQueries(organizationContext: OrganizationContext): Emplo
   };
 
   const getEmployeeGeneralInfo = async (employeeId: CUID): Promise<EmployeeGeneralInfoDto> => {
-    const employee = await db.employee.findUnique({
+    let employee = await db.employee.findUnique({
       where: { id: employeeId },
       include: {
         children: true,
         additionalEmails: true,
       },
     });
+
+    if (!employee) {
+      employee = await db.employee.findFirst({
+        where: { identityId: employeeId },
+        include: {
+          children: true,
+          additionalEmails: true,
+        },
+      });
+    }
+
+    if (!employee) {
+      const identity = await db.identity.findUnique({ where: { id: employeeId } });
+      if (identity) {
+        const namePart = identity.email.split('@')[0] || 'User';
+        try {
+          employee = await db.employee.create({
+            data: {
+              identityId: identity.id,
+              firstName: namePart,
+              lastName: '',
+              workEmail: identity.email,
+              status: 'ACTIVE',
+            },
+            include: {
+              children: true,
+              additionalEmails: true,
+            },
+          });
+        } catch {
+          // If workEmail is already used by another employee, link that employee
+          employee = await db.employee.findFirst({
+            where: { workEmail: identity.email },
+            include: {
+              children: true,
+              additionalEmails: true,
+            },
+          });
+        }
+      }
+    }
 
     if (!employee) {
       throw new Error(EMPLOYEE_ERROR_MESSAGES.NOT_FOUND(employeeId));
@@ -210,10 +251,41 @@ export function employeeQueries(organizationContext: OrganizationContext): Emplo
   };
 
   const getEmployeeById = async (employeeId: CUID) => {
-    const employee = await db.employee.findUnique({
+    let employee = await db.employee.findUnique({
       select: employeeSchemaSelect,
       where: { id: employeeId },
     });
+
+    if (!employee) {
+      employee = await db.employee.findFirst({
+        select: employeeSchemaSelect,
+        where: { identityId: employeeId },
+      });
+    }
+
+    if (!employee) {
+      const identity = await db.identity.findUnique({ where: { id: employeeId } });
+      if (identity) {
+        const namePart = identity.email.split('@')[0] || 'User';
+        try {
+          await db.employee.create({
+            data: {
+              identityId: identity.id,
+              firstName: namePart,
+              lastName: '',
+              workEmail: identity.email,
+              status: 'ACTIVE',
+            },
+          });
+        } catch {
+          // If workEmail is already used by another employee, link that employee
+        }
+        employee = await db.employee.findFirst({
+          select: employeeSchemaSelect,
+          where: { OR: [{ identityId: identity.id }, { workEmail: identity.email }] },
+        });
+      }
+    }
 
     if (!employee) return null;
 

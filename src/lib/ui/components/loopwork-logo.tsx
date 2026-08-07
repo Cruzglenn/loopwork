@@ -1,15 +1,20 @@
 import Image from 'next/image';
+import { cn, type PropsWithClassName } from '@/shared';
 
-export function LoopworkLogo(): JSX.Element {
+type Props = {
+  height?: number;
+};
+
+export function LoopworkLogo({ className, height = 32 }: PropsWithClassName<Props>): JSX.Element {
   return (
-    <span aria-hidden="true" className="block py-4 text-center">
+    <span aria-hidden="true" className={cn('flex items-center justify-center', className)}>
       <Image
-        alt=""
-        className="mx-auto h-12 w-auto"
+        alt="Loopwork"
+        className="h-7 w-auto object-contain"
         draggable={false}
-        height={48}
+        height={height}
         src="/images/logo.svg"
-        width={192}
+        width={120}
       />
     </span>
   );

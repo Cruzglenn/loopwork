@@ -1,8 +1,9 @@
 'use server';
 
 import { z } from 'zod';
+import { revalidatePath } from 'next/cache';
 import { hrisApi } from '@/api/hris';
-import { type CUID, handleActionError, type ActionReturnType } from '@/shared';
+import { type CUID, handleActionError, type ActionReturnType, HRIS_ROUTES } from '@/shared';
 import { type RoleListItemDto } from '@/api/hris/authorization/infrastructure/controllers/roles.controller';
 import {
   createIdentitySchema,
@@ -81,6 +82,8 @@ export async function createIdentityAction(
       await updateEmployeeStatusIfNeeded(api, employeeId);
       await api.employees.updateEmployeeGeneralInfo(employeeId, { identityId });
 
+      revalidatePath(HRIS_ROUTES.employees.general.base(employeeId));
+
       return {
         ...prevState,
         status: 'success',
@@ -128,6 +131,8 @@ export async function createIdentityAction(
 
     await updateEmployeeStatusIfNeeded(api, employeeId);
     await api.employees.updateEmployeeGeneralInfo(employeeId, { identityId });
+
+    revalidatePath(HRIS_ROUTES.employees.general.base(employeeId));
 
     return {
       ...prevState,
@@ -199,9 +204,14 @@ export async function updateIdentityAction(
 
     const updates: { email?: string; password?: string } = {};
 
+    const employeeId = formData.get('employeeId') as CUID;
+
     // Only update email if it's provided and different from current email
     if (form.email && form.email.trim() !== '' && form.email !== currentIdentity.email) {
       updates.email = form.email;
+      if (employeeId) {
+        await api.employees.updateEmployeeGeneralInfo(employeeId, { workEmail: form.email });
+      }
     }
 
     // Only update password if provided (it's already generated if user clicked generate button)
@@ -235,6 +245,10 @@ export async function updateIdentityAction(
       }
     }
 
+    if (employeeId) {
+      revalidatePath(HRIS_ROUTES.employees.general.base(employeeId));
+    }
+
     return {
       ...prevState,
       status: 'success',
@@ -252,6 +266,8 @@ export async function deleteIdentityAction(identityId: CUID, employeeId: CUID) {
 
     await api.auth.deleteIdentity(identityId);
     await api.employees.updateEmployeeGeneralInfo(employeeId, { identityId: null });
+
+    revalidatePath(HRIS_ROUTES.employees.general.base(employeeId));
 
     return {
       status: 'success' as const,

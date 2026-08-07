@@ -26,7 +26,14 @@ export default async function EarningsLayout(props: PropsWithChildren<Props>) {
   // Check scope: if SELF scope, only allow viewing own earnings
   const scope = permissionChecker.getScope(ResourceType.EMPLOYEE_EARNINGS);
   if (scope === PermissionScope.SELF && me.id !== id) {
-    return redirect(HRIS_ROUTES.employees.general.base(id));
+    try {
+      const myEmployee = await api.employees.getEmployeeById(me.id);
+      if (!myEmployee || (myEmployee.id !== id && myEmployee.identityId !== id)) {
+        return redirect(HRIS_ROUTES.employees.general.base(id));
+      }
+    } catch {
+      return redirect(HRIS_ROUTES.employees.general.base(id));
+    }
   }
 
   return (

@@ -11,15 +11,15 @@ export async function Header({ children, className }: PropsWithClassName<PropsWi
   return (
     <header
       className={cn(
-        'flex h-14 items-center bg-white rounded-b-xl md:rounded-none px-4 sticky top-0 left-0 z-[60]',
+        'sticky left-0 top-0 z-[60] flex h-14 items-center rounded-b-xl bg-white px-4 shadow-xs md:rounded-none',
         className,
       )}
     >
-      <div className="flex w-full max-w-[102rem]">
-        <div className="relative h-12 w-[8.5rem]">
+      <div className="flex w-full max-w-[102rem] items-center justify-between">
+        <div className="flex items-center">
           <LoopworkLogo />
         </div>
-        <div className="ml-auto flex items-center gap-x-4">{children}</div>
+        <div className="ml-auto flex items-center gap-x-3">{children}</div>
       </div>
     </header>
   );

@@ -6,7 +6,11 @@ type EmployeeGeneralToastKey =
   | 'PARTNERSHIP_INFO_UPDATE'
   | 'OTHER_INFO_UPDATE'
   | 'CREATE'
-  | 'USER_LIMIT_EXCEEDED';
+  | 'USER_LIMIT_EXCEEDED'
+  | 'IDENTITY_UPDATE'
+  | 'IDENTITY_CREATE'
+  | 'IDENTITY_DELETE'
+  | 'IDENTITY_DELETE_ERROR';
 
 export const EMPLOYEE_GENERAL_TOASTS: Record<EmployeeGeneralToastKey, Toast> = {
   CREATE: { label: 'employees.create.success', intent: 'success' },
@@ -15,6 +19,10 @@ export const EMPLOYEE_GENERAL_TOASTS: Record<EmployeeGeneralToastKey, Toast> = {
   CONTACT_INFO_UPDATE: { label: 'employees.general.contactInfo.success', intent: 'success' },
   PARTNERSHIP_INFO_UPDATE: { label: 'employees.general.partnershipInfo.success', intent: 'success' },
   OTHER_INFO_UPDATE: { label: 'employees.general.otherInfo.success', intent: 'success' },
+  IDENTITY_UPDATE: { label: 'employees.general.identity.updateSuccess', intent: 'success' },
+  IDENTITY_CREATE: { label: 'employees.general.identity.createSuccess', intent: 'success' },
+  IDENTITY_DELETE: { label: 'employees.general.identity.deleteSuccess', intent: 'success' },
+  IDENTITY_DELETE_ERROR: { label: 'employees.general.identity.deleteError', intent: 'error' },
 };
 
 type CompanyGeneralToastKey = 'BASIC_INFO_UPDATE';
@@ -182,4 +190,11 @@ export const BENEFIT_TOASTS: Record<BenefitToastKey, Toast> = {
   UPDATE: { intent: 'success', label: 'company.benefits.update.success' },
   ASSIGN: { intent: 'success', label: 'company.benefits.assign.success' },
   UNASSIGN: { intent: 'success', label: 'employees.benefits.unassign.success' },
+};
+
+type PayrollToastKey = 'GENERATE_SUCCESS' | 'GENERATE_ERROR';
+
+export const PAYROLL_TOASTS: Record<PayrollToastKey, Toast> = {
+  GENERATE_SUCCESS: { intent: 'success', label: 'company.payroll.generate.success' },
+  GENERATE_ERROR: { intent: 'error', label: 'company.payroll.generate.error' },
 };

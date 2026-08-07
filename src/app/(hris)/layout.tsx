@@ -22,12 +22,12 @@ export default async function DashboardLayout({ children }: PropsWithChildren): 
         <AccountMenu api={hrisApi} />
         <MobileNavigation account={account} permissions={permissions} />
       </Header>
-      <div className="flex min-h-[calc(100svh_-_3.5rem)]">
+      <div className="flex min-h-[calc(100svh_-_3.5rem)] min-w-0 overflow-x-hidden">
         <MainNavigation account={account} permissions={permissions} />
-        <div className="flex-1 bg-background md:rounded-tl-xl">
-          <main className="flex size-full max-w-[1440px] flex-1 flex-col overflow-y-auto md:gap-y-4 md:p-4">
-            <Breadcrumbs className="flex h-4 flex-wrap gap-1 pl-4 md:pl-8" />
-            <div className="size-full ">{children}</div>
+        <div className="min-w-0 flex-1 overflow-x-hidden bg-background md:rounded-tl-xl">
+          <main className="flex size-full max-w-[1440px] flex-1 flex-col overflow-y-auto p-3 md:gap-y-4 md:p-4">
+            <Breadcrumbs className="flex h-4 flex-wrap gap-1 pl-2 md:pl-8" />
+            <div className="size-full min-w-0">{children}</div>
           </main>
         </div>
       </div>

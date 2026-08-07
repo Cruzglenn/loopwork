@@ -26,7 +26,7 @@ export function MobileNavigation({ account, permissions }: Props): JSX.Element {
       <ModalOverlay
         isDismissable
         className={({ isEntering, isExiting }) =>
-          cn('fixed inset-0 bg-modal-overlay overflow-x-hidden md:hidden z-50', {
+          cn('fixed inset-0 z-50 overflow-x-hidden bg-black/50 backdrop-blur-sm md:hidden', {
             'animate-show': isEntering,
             'animate-hide': isExiting,
           })
@@ -37,10 +37,13 @@ export function MobileNavigation({ account, permissions }: Props): JSX.Element {
         <Modal
           isDismissable
           className={({ isEntering, isExiting }) =>
-            cn('absolute top-14 right-0 bottom-0 w-52 bg-white overflow-y-auto', {
-              'animate-slide-in-horizontal': isEntering,
-              'animate-slide-out-horizontal': isExiting,
-            })
+            cn(
+              'absolute bottom-0 right-0 top-14 z-50 w-64 overflow-y-auto border-l border-gray-200 bg-white shadow-2xl',
+              {
+                'animate-slide-in-horizontal': isEntering,
+                'animate-slide-out-horizontal': isExiting,
+              },
+            )
           }
           ref={overlayRef}
         >

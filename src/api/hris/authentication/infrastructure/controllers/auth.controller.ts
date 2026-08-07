@@ -202,14 +202,29 @@ export function authController(organizationContext: OrganizationContext): AuthCo
         throw new ApiError(401, ERROR_MESSAGES.UNAUTHORIZED);
       }
 
-      const employee = await employeeAclImpl.getEmployeeByEmail(identity.getEmail());
+      let employee = null;
+      try {
+        employee = await employeeAclImpl.getEmployeeByEmail(identity.getEmail());
+      } catch {
+        employee = null;
+      }
+
       const [locale, dateFormat] = await Promise.all([
         settingsAclImpl.getLocale(),
         settingsAclImpl.getDateFormat(),
       ]);
+
+      const firstName = employee?.firstName || identity.getEmail().split('@')[0] || 'User';
+      const lastName = employee?.lastName || '';
+
       return {
         ...employee,
         id: employee?.id || identityId,
+        firstName,
+        lastName,
+        email: identity.getEmail(),
+        avatarId: employee?.avatarId || null,
+        status: employee?.status || ('ACTIVE' as const),
         locale,
         dateFormat,
         roles: identity.getPayload().roles,

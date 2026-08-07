@@ -21,26 +21,26 @@ export default async function CompanyAttendancePage({ searchParams }: Props) {
   const overview = await hrisApi.attendance.getCompanyOverview(today, params.search, params.status);
 
   return (
-    <Card className="flex flex-col gap-6 p-6">
+    <Card className="flex flex-col gap-6 p-4 sm:p-6">
       <BasicHeader>{t('attendance.header')}</BasicHeader>
 
-      {/* Summary Metrics Bar */}
-      <div className="grid grid-cols-2 divide-x divide-gray-200 rounded-lg border border-gray-200 bg-gray-50/50 py-3 sm:grid-cols-4">
-        <div className="flex flex-col items-center justify-center p-2 text-center">
+      {/* Summary Metrics Bar - Clean Responsive Card Tiles */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50/60 p-3 text-center">
           <span className="text-xs font-medium text-gray-500">{t('attendance.metrics.activeEmployees')}</span>
-          <span className="text-xl font-bold text-blue-600">{overview.totalEmployees}</span>
+          <span className="text-base font-bold text-blue-600 sm:text-xl">{overview.totalEmployees}</span>
         </div>
-        <div className="flex flex-col items-center justify-center p-2 text-center">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50/60 p-3 text-center">
           <span className="text-xs font-medium text-gray-500">{t('attendance.status.clockedIn')}</span>
-          <span className="text-xl font-bold text-green-600">{overview.clockedInCount}</span>
+          <span className="text-base font-bold text-green-600 sm:text-xl">{overview.clockedInCount}</span>
         </div>
-        <div className="flex flex-col items-center justify-center p-2 text-center">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50/60 p-3 text-center">
           <span className="text-xs font-medium text-gray-500">{t('attendance.metrics.onBreakCount')}</span>
-          <span className="text-xl font-bold text-amber-600">{overview.onBreakCount}</span>
+          <span className="text-base font-bold text-amber-600 sm:text-xl">{overview.onBreakCount}</span>
         </div>
-        <div className="flex flex-col items-center justify-center p-2 text-center">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50/60 p-3 text-center">
           <span className="text-xs font-medium text-gray-500">{t('attendance.status.clockedOut')}</span>
-          <span className="text-xl font-bold text-gray-700">{overview.clockedOutCount}</span>
+          <span className="text-base font-bold text-gray-700 sm:text-xl">{overview.clockedOutCount}</span>
         </div>
       </div>
 

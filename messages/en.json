@@ -1196,6 +1196,12 @@
         },
         "otherInfo": {
           "success": "Updating successful"
+        },
+        "identity": {
+          "updateSuccess": "Identity updated successfully",
+          "createSuccess": "Identity created successfully",
+          "deleteSuccess": "Identity deleted successfully",
+          "deleteError": "Failed to delete identity"
         }
       },
       "documents": {
@@ -1252,11 +1258,20 @@
         "assign": {
           "success": "Benefits assigned successfully"
         }
+      },
+      "payroll": {
+        "generate": {
+          "success": "Payroll run generated successfully",
+          "error": "Failed to generate payroll run"
+        }
       }
     },
     "settings": {
       "update": {
-        "success": "Updating successful"
+        "success": "Updating successful",
+        "changePassword": {
+          "success": "Password changed successfully"
+        }
       }
     },
     "equipment": {

@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useTranslations } from 'use-intl';
 import { type PayslipDto } from '@/api/hris/payroll/model/dtos';
-import { Cell, Row, Table, TableBody, TableHeader, Chip, Button, Icon } from '@/lib/ui';
-import { type Columns, parseDate, API_ROUTES } from '@/shared';
+import { Cell, Column, Row, Table, TableBody, TableHeader, Chip, Button } from '@/lib/ui';
+import { type Columns, parseDate, API_ROUTES, type PropsWithClassName, cn } from '@/shared';
 
 type Props = {
   payslips: PayslipDto[];
@@ -17,10 +17,9 @@ const PAYROLL_COLUMNS: Columns = {
   deductions: { label: 'payroll.table.deductions' },
   netPay: { label: 'payroll.table.netPay' },
   status: { label: 'payroll.table.status' },
-  actions: { label: 'payroll.table.actions' },
 };
 
-export function PayrollTable({ payslips }: Props): JSX.Element {
+export function PayrollTable({ payslips, className }: PropsWithClassName<Props>): JSX.Element {
   const t = useTranslations();
 
   const getStatusChip = (status: string) => {
@@ -36,27 +35,32 @@ export function PayrollTable({ payslips }: Props): JSX.Element {
   };
 
   return (
-    <Table aria-label={t('payroll.title')}>
-      <TableHeader columns={PAYROLL_COLUMNS} />
+    <Table aria-label={t('payroll.title')} className={cn(className)}>
+      <TableHeader columns={PAYROLL_COLUMNS}>
+        <Column />
+      </TableHeader>
       <TableBody>
         {payslips.map((item) => (
           <Row key={item.id} id={item.id}>
-            <Cell>
+            <Cell truncate={false}>
               <span className="font-medium">
                 {item.employee ? `${item.employee.firstName} ${item.employee.lastName}` : 'Employee'}
               </span>
             </Cell>
-            <Cell>
+            <Cell className="min-w-44" truncate={false}>
               {parseDate(item.periodStart, 'MMM DD')} - {parseDate(item.periodEnd, 'MMM DD, YYYY')}
             </Cell>
-            <Cell>${item.grossPay.toLocaleString()}</Cell>
-            <Cell className="text-red-600">-${item.deductionsTotal.toLocaleString()}</Cell>
-            <Cell className="font-bold text-blue-600">${item.netPay.toLocaleString()}</Cell>
-            <Cell>{getStatusChip(item.status)}</Cell>
-            <Cell>
+            <Cell truncate={false}>${item.grossPay.toLocaleString()}</Cell>
+            <Cell className="text-red-600" truncate={false}>
+              -${item.deductionsTotal.toLocaleString()}
+            </Cell>
+            <Cell className="font-bold text-blue-600" truncate={false}>
+              ${item.netPay.toLocaleString()}
+            </Cell>
+            <Cell truncate={false}>{getStatusChip(item.status)}</Cell>
+            <Cell className="pr-0 text-right" truncate={false}>
               <Link href={API_ROUTES.downloadPayslip(item.id)} target="_blank">
-                <Button intent="tertiary" size="sm">
-                  <Icon name="document-text" size="xs" />
+                <Button icon="document-text" intent="tertiary" size="sm">
                   {t('payroll.table.downloadPdf')}
                 </Button>
               </Link>
