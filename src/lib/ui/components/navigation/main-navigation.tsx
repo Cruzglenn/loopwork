@@ -19,7 +19,7 @@ export function MainNavigation({ account, permissions }: Props): JSX.Element {
   return (
     <aside
       className={cn(
-        'hidden sticky top-14 min-h-[calc(100vh_-_3.5rem)] left-0 md:block size-full shrink-0 basis-14 bg-white transition-[flex_basis]',
+        'hidden sticky top-14 h-[calc(100vh_-_3.5rem)] left-0 md:block shrink-0 basis-14 overflow-y-auto bg-white transition-[flex_basis]',
         {
           'basis-52': isExpanded,
         },

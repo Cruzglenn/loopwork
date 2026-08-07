@@ -59,9 +59,9 @@ export default async function EmployeePayrollPage({ params }: Props) {
                   <Cell>
                     {parseDate(item.periodStart, 'MMM DD')} - {parseDate(item.periodEnd, 'MMM DD, YYYY')}
                   </Cell>
-                  <Cell>${item.grossPay.toLocaleString()}</Cell>
-                  <Cell className="text-red-600">-${item.deductionsTotal.toLocaleString()}</Cell>
-                  <Cell className="font-bold text-blue-600">${item.netPay.toLocaleString()}</Cell>
+                  <Cell>₱{item.grossPay.toLocaleString()}</Cell>
+                  <Cell className="text-red-600">-₱{item.deductionsTotal.toLocaleString()}</Cell>
+                  <Cell className="font-bold text-blue-600">₱{item.netPay.toLocaleString()}</Cell>
                   <Cell>{getStatusChip(item.status)}</Cell>
                   <Cell>
                     <Link href={API_ROUTES.downloadPayslip(item.id)} target="_blank">

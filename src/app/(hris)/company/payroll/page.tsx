@@ -48,7 +48,7 @@ export default async function CompanyPayrollPage({ searchParams }: Props) {
                 <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50/60 p-3 text-center">
                   <span className="text-xs font-medium text-gray-500">{t('payroll.metrics.totalGross')}</span>
                   <span className="text-base font-bold text-blue-600 sm:text-xl">
-                    ${overview.totalGrossPay.toLocaleString()}
+                    ₱{overview.totalGrossPay.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50/60 p-3 text-center">
@@ -56,13 +56,13 @@ export default async function CompanyPayrollPage({ searchParams }: Props) {
                     {t('payroll.metrics.totalDeductions')}
                   </span>
                   <span className="text-base font-bold text-red-600 sm:text-xl">
-                    -${overview.totalDeductions.toLocaleString()}
+                    -₱{overview.totalDeductions.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50/60 p-3 text-center">
                   <span className="text-xs font-medium text-gray-500">{t('payroll.metrics.totalNet')}</span>
                   <span className="text-base font-bold text-green-600 sm:text-xl">
-                    ${overview.totalNetPay.toLocaleString()}
+                    ₱{overview.totalNetPay.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50/60 p-3 text-center">

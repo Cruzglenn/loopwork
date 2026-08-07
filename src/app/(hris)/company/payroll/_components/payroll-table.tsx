@@ -50,12 +50,12 @@ export function PayrollTable({ payslips, className }: PropsWithClassName<Props>)
             <Cell className="min-w-44" truncate={false}>
               {parseDate(item.periodStart, 'MMM DD')} - {parseDate(item.periodEnd, 'MMM DD, YYYY')}
             </Cell>
-            <Cell truncate={false}>${item.grossPay.toLocaleString()}</Cell>
+            <Cell truncate={false}>₱{item.grossPay.toLocaleString()}</Cell>
             <Cell className="text-red-600" truncate={false}>
-              -${item.deductionsTotal.toLocaleString()}
+              -₱{item.deductionsTotal.toLocaleString()}
             </Cell>
             <Cell className="font-bold text-blue-600" truncate={false}>
-              ${item.netPay.toLocaleString()}
+              ₱{item.netPay.toLocaleString()}
             </Cell>
             <Cell truncate={false}>{getStatusChip(item.status)}</Cell>
             <Cell className="pr-0 text-right" truncate={false}>

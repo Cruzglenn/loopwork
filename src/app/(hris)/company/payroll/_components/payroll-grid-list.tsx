@@ -44,14 +44,14 @@ export function PayrollGridList({ payslips, className }: PropsWithClassName<Prop
               </span>
               <div className="mt-1 flex flex-wrap items-center gap-3 text-xs">
                 <span>
-                  Gross: <strong className="text-gray-700">${item.grossPay.toLocaleString()}</strong>
+                  Gross: <strong className="text-gray-700">₱{item.grossPay.toLocaleString()}</strong>
                 </span>
                 <span>
                   Deductions:{' '}
-                  <strong className="text-red-600">-${item.deductionsTotal.toLocaleString()}</strong>
+                  <strong className="text-red-600">-₱{item.deductionsTotal.toLocaleString()}</strong>
                 </span>
                 <span>
-                  Net: <strong className="text-blue-600">${item.netPay.toLocaleString()}</strong>
+                  Net: <strong className="text-blue-600">₱{item.netPay.toLocaleString()}</strong>
                 </span>
               </div>
             </div>

@@ -8,7 +8,7 @@ export async function updateSalaryConfigAction(
   employeeId: string,
   baseSalary: number,
   payPeriod: 'WEEKLY' | 'BIWEEKLY' | 'SEMIMONTHLY' | 'MONTHLY' = 'MONTHLY',
-  currency = 'USD',
+  currency = 'PHP',
 ) {
   try {
     await hrisApi.payroll.updateSalaryConfig({

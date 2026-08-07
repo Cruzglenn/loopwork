@@ -179,7 +179,7 @@ export function buildPayslipPdf(payslip: PayslipDto, companyName = 'Loopwork Inc
       .fontSize(18)
       .fillColor(COLORS.primary)
       .text(
-        `USD $${payslip.netPay.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+        `PHP ₱${payslip.netPay.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
         col3X,
         currentY + 14,
         { width: colWidth, align: 'right' },
@@ -295,7 +295,7 @@ export function buildPayslipPdf(payslip: PayslipDto, companyName = 'Loopwork Inc
       .fillColor(COLORS.textBody)
       .text('Basic Salary', PAGE.marginLeft + 12, currentY);
     doc.text(
-      `USD $${payslip.basicPay.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+      `PHP ₱${payslip.basicPay.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
       PAGE.marginLeft + contentWidth - 120,
       currentY,
       { width: 108, align: 'right' },
@@ -310,7 +310,7 @@ export function buildPayslipPdf(payslip: PayslipDto, companyName = 'Loopwork Inc
         .fillColor(COLORS.textBody)
         .text('Overtime Pay', PAGE.marginLeft + 12, currentY);
       doc.text(
-        `USD $${payslip.overtimePay.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+        `PHP ₱${payslip.overtimePay.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
         PAGE.marginLeft + contentWidth - 120,
         currentY,
         { width: 108, align: 'right' },
@@ -322,7 +322,7 @@ export function buildPayslipPdf(payslip: PayslipDto, companyName = 'Loopwork Inc
     if (payslip.items && payslip.items.length > 0) {
       payslip.items.forEach((item) => {
         const isAllowance = item.type === 'ALLOWANCE';
-        const formattedAmount = `${isAllowance ? '' : '-'}$${item.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+        const formattedAmount = `${isAllowance ? '' : '-'}₱${item.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
 
         doc
           .font(FONTS.regular)
@@ -331,7 +331,7 @@ export function buildPayslipPdf(payslip: PayslipDto, companyName = 'Loopwork Inc
           .text(sanitizeText(item.name), PAGE.marginLeft + 12, currentY);
         doc
           .fillColor(isAllowance ? COLORS.textBody : '#DC2626')
-          .text(`USD ${formattedAmount}`, PAGE.marginLeft + contentWidth - 120, currentY, {
+          .text(`PHP ${formattedAmount}`, PAGE.marginLeft + contentWidth - 120, currentY, {
             width: 108,
             align: 'right',
           });
@@ -360,7 +360,7 @@ export function buildPayslipPdf(payslip: PayslipDto, companyName = 'Loopwork Inc
       .font(FONTS.bold)
       .fillColor(COLORS.textDark)
       .text(
-        `USD $${payslip.grossPay.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+        `PHP ₱${payslip.grossPay.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
         PAGE.marginLeft + contentWidth - 120,
         currentY,
         { width: 108, align: 'right' },
@@ -377,7 +377,7 @@ export function buildPayslipPdf(payslip: PayslipDto, companyName = 'Loopwork Inc
       .font(FONTS.bold)
       .fillColor('#DC2626')
       .text(
-        `-USD $${payslip.deductionsTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+        `-PHP ₱${payslip.deductionsTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
         PAGE.marginLeft + contentWidth - 120,
         currentY,
         { width: 108, align: 'right' },
@@ -404,7 +404,7 @@ export function buildPayslipPdf(payslip: PayslipDto, companyName = 'Loopwork Inc
       .fontSize(11)
       .fillColor(COLORS.primary)
       .text(
-        `USD $${payslip.netPay.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+        `PHP ₱${payslip.netPay.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
         PAGE.marginLeft + contentWidth - 120,
         currentY,
         { width: 108, align: 'right' },

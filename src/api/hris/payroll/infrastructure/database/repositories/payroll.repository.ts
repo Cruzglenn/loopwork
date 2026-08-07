@@ -23,7 +23,7 @@ export function payrollRepository(db: OrganizationPrismaClient): PayrollReposito
         baseSalary: dto.baseSalary,
         payPeriod: dto.payPeriod || 'MONTHLY',
         hourlyRate: dto.hourlyRate || dto.baseSalary / 160,
-        currency: dto.currency || 'USD',
+        currency: dto.currency || 'PHP',
       },
     });
     return config as unknown as EmployeeSalaryConfigDto;

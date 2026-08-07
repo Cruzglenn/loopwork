@@ -67,7 +67,7 @@ export function Navbar({ isExpanded, account, permissions, onLinkClick, ...other
   const myProfileHref = HRIS_ROUTES.employees.general.base(account.id);
 
   return (
-    <nav className="navigation-menu pt-[2.375rem]" {...other}>
+    <nav className="navigation-menu pt-2" {...other}>
       <ul>
         <li className="my-2 px-1.5">
           <NavItem

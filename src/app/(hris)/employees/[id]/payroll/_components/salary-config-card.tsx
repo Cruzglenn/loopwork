@@ -15,7 +15,7 @@ type Props = {
 export function SalaryConfigCard({ employeeId, config }: Props): JSX.Element {
   const t = useTranslations();
   const [isPending, startTransition] = useTransition();
-  const [baseSalary, setBaseSalary] = useState(config?.baseSalary || 3000);
+  const [baseSalary, setBaseSalary] = useState(config?.baseSalary ?? 0);
 
   const handleSave = () => {
     startTransition(async () => {

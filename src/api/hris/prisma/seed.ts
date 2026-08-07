@@ -75,6 +75,118 @@ async function main() {
 
   console.log('✅ OWNER role permissions configured');
 
+  // Seed realistic Filipino employees with Philippine Peso salaries
+  const filipinoEmployees = [
+    {
+      firstName: 'Juan',
+      lastName: 'dela Cruz',
+      workEmail: 'juan.delacruz@loopwork.com',
+      role: 'Lead Software Engineer',
+      baseSalary: 95000,
+    },
+    {
+      firstName: 'Maria',
+      lastName: 'Santos',
+      workEmail: 'maria.santos@loopwork.com',
+      role: 'HR Manager',
+      baseSalary: 75000,
+    },
+    {
+      firstName: 'Jose',
+      lastName: 'Reyes',
+      workEmail: 'jose.reyes@loopwork.com',
+      role: 'Senior Finance Officer',
+      baseSalary: 68000,
+    },
+    {
+      firstName: 'Mark',
+      lastName: 'Bautista',
+      workEmail: 'mark.bautista@loopwork.com',
+      role: 'Product Designer',
+      baseSalary: 60000,
+    },
+    {
+      firstName: 'Angela',
+      lastName: 'Garcia',
+      workEmail: 'angela.garcia@loopwork.com',
+      role: 'Operations Specialist',
+      baseSalary: 48000,
+    },
+    {
+      firstName: 'Ramon',
+      lastName: 'Mendoza',
+      workEmail: 'ramon.mendoza@loopwork.com',
+      role: 'QA Engineering Lead',
+      baseSalary: 55000,
+    },
+    {
+      firstName: 'Patricia',
+      lastName: 'Ramos',
+      workEmail: 'patricia.ramos@loopwork.com',
+      role: 'Marketing Specialist',
+      baseSalary: 50000,
+    },
+    {
+      firstName: 'Gabriel',
+      lastName: 'Aquino',
+      workEmail: 'gabriel.aquino@loopwork.com',
+      role: 'DevOps Engineer',
+      baseSalary: 82000,
+    },
+  ];
+
+  for (const emp of filipinoEmployees) {
+    const existing = await prisma.employee.findFirst({
+      where: { workEmail: emp.workEmail },
+    });
+
+    let employeeId = existing?.id;
+
+    if (!existing) {
+      const created = await prisma.employee.create({
+        data: {
+          firstName: emp.firstName,
+          lastName: emp.lastName,
+          workEmail: emp.workEmail,
+          role: emp.role,
+          status: 'ACTIVE',
+        },
+      });
+      employeeId = created.id;
+    } else {
+      await prisma.employee.update({
+        where: { id: employeeId },
+        data: {
+          firstName: emp.firstName,
+          lastName: emp.lastName,
+          role: emp.role,
+          status: 'ACTIVE',
+        },
+      });
+    }
+
+    if (employeeId) {
+      await prisma.employeeSalaryConfig.upsert({
+        where: { employeeId },
+        update: {
+          baseSalary: emp.baseSalary,
+          currency: 'PHP',
+          payPeriod: 'MONTHLY',
+          hourlyRate: emp.baseSalary / 160,
+        },
+        create: {
+          employeeId,
+          baseSalary: emp.baseSalary,
+          currency: 'PHP',
+          payPeriod: 'MONTHLY',
+          hourlyRate: emp.baseSalary / 160,
+        },
+      });
+    }
+  }
+
+  console.log('✅ Realistic Filipino employees & salaries seeded');
+
   console.log('🎉 Database seed completed successfully!');
 }
 
