@@ -8,7 +8,7 @@ import { PasswordInput } from '@/lib/ui/components/password-input';
 import { loginUser } from '../_actions';
 
 export function LoginForm() {
-  const [state, loginUserAction] = useActionState(loginUser, {
+  const [state, loginUserAction, isPending] = useActionState(loginUser, {
     status: 'idle',
     form: { email: '', password: '' },
   });
@@ -25,13 +25,13 @@ export function LoginForm() {
         text={state.status === 'error' && state.error ? state.error : t('errorMessages.signInError')}
       />
       <FormControl errors={errors} name="email">
-        {({ name, isSubmitting, isInvalid, errorMessage }) => (
+        {({ name, isInvalid, errorMessage }) => (
           <TextInput
             autoComplete="email"
             errorMessage={errorMessage}
             inputProps={{ placeholder: tNext('forms.email') }}
             isInvalid={isInvalid}
-            isReadOnly={isSubmitting}
+            isReadOnly={isPending}
             label={t('forms.email')}
             name={name}
             type="email"
@@ -39,25 +39,21 @@ export function LoginForm() {
         )}
       </FormControl>
       <FormControl errors={errors} name="password">
-        {({ name, isSubmitting, isInvalid, errorMessage }) => (
+        {({ name, isInvalid, errorMessage }) => (
           <PasswordInput
             autoComplete="current-password"
             errorMessage={errorMessage}
             inputProps={{ placeholder: tNext('forms.password') }}
             isInvalid={isInvalid}
-            isReadOnly={isSubmitting}
+            isReadOnly={isPending}
             label={t('forms.password')}
             name={name}
           />
         )}
       </FormControl>
-      <FormControl>
-        {({ isSubmitting }) => (
-          <Button className="mt-4" isLoading={isSubmitting} size="lg" type="submit">
-            {t('ctaLabels.signIn')}
-          </Button>
-        )}
-      </FormControl>
+      <Button className="mt-4" isDisabled={isPending} isLoading={isPending} size="lg" type="submit">
+        {isPending ? 'Signing in...' : t('ctaLabels.signIn')}
+      </Button>
     </form>
   );
 }
