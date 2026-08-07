@@ -29,6 +29,8 @@
   },
   "dependencies": {
     "@bitnoi.se/react-scheduler": "^0.3.1",
+    "@fontsource/noto-sans": "^5.3.0",
+    "@fontsource/roboto": "^5.3.0",
     "@paralleldrive/cuid2": "^2.2.2",
     "@prisma/client": "^5.18.0",
     "@types/pdfkit": "^0.17.5",
