@@ -27,14 +27,14 @@ export function LoginForm() {
       rawError === 'errorMessages.auth.invalidCredentials' ||
       rawError.includes('invalidCredentials')
     ) {
-      return 'Invalid email or password. Please check your credentials and try again.';
+      return 'Invalid email or password';
     }
 
     if (rawError.startsWith('errorMessages.')) {
       try {
         return t(rawError.replace('errorMessages.', ''));
       } catch {
-        return 'Invalid email or password. Please check your credentials and try again.';
+        return 'Invalid email or password';
       }
     }
 
