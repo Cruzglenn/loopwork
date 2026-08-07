@@ -11,7 +11,7 @@ export async function Header({ children, className }: PropsWithClassName<PropsWi
   return (
     <header
       className={cn(
-        'sticky left-0 top-0 z-[60] flex h-14 items-center rounded-b-xl bg-white px-4 shadow-xs md:rounded-none',
+        'flex h-14 w-full shrink-0 items-center rounded-b-xl bg-white px-4 shadow-xs md:rounded-none z-[60]',
         className,
       )}
     >

@@ -322,7 +322,6 @@ export function buildPayslipPdf(payslip: PayslipDto, companyName = 'Loopwork Inc
     if (payslip.items && payslip.items.length > 0) {
       payslip.items.forEach((item) => {
         const isAllowance = item.type === 'ALLOWANCE';
-        const formattedAmount = `${isAllowance ? '' : '-'}₱${item.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
 
         doc
           .font(FONTS.regular)
@@ -331,10 +330,15 @@ export function buildPayslipPdf(payslip: PayslipDto, companyName = 'Loopwork Inc
           .text(sanitizeText(item.name), PAGE.marginLeft + 12, currentY);
         doc
           .fillColor(isAllowance ? COLORS.textBody : '#DC2626')
-          .text(`PHP ${formattedAmount}`, PAGE.marginLeft + contentWidth - 120, currentY, {
-            width: 108,
-            align: 'right',
-          });
+          .text(
+            `PHP ₱${item.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+            PAGE.marginLeft + contentWidth - 120,
+            currentY,
+            {
+              width: 108,
+              align: 'right',
+            },
+          );
         currentY += 18;
       });
     }
@@ -377,7 +381,7 @@ export function buildPayslipPdf(payslip: PayslipDto, companyName = 'Loopwork Inc
       .font(FONTS.bold)
       .fillColor('#DC2626')
       .text(
-        `-PHP ₱${payslip.deductionsTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+        `PHP ₱${payslip.deductionsTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
         PAGE.marginLeft + contentWidth - 120,
         currentY,
         { width: 108, align: 'right' },
@@ -417,31 +421,6 @@ export function buildPayslipPdf(payslip: PayslipDto, companyName = 'Loopwork Inc
       .strokeColor(COLORS.primary)
       .lineWidth(1.5)
       .stroke();
-
-    currentY += 38;
-
-    // 6. Cursive Handwritten Signature Line at the bottom
-    const empName = `${payslip.employee?.firstName || ''} ${payslip.employee?.lastName || ''}`;
-    doc
-      .font('Times-BoldItalic')
-      .fontSize(20)
-      .fillColor('#4338CA')
-      .text(sanitizeText(empName), PAGE.marginLeft + 12, currentY);
-
-    currentY += 24;
-    doc
-      .moveTo(PAGE.marginLeft + 12, currentY)
-      .lineTo(PAGE.marginLeft + 220, currentY)
-      .strokeColor('#CBD5E1')
-      .lineWidth(0.75)
-      .stroke();
-
-    currentY += 6;
-    doc
-      .font(FONTS.regular)
-      .fontSize(7.5)
-      .fillColor(COLORS.textMuted)
-      .text('Employee Signature', PAGE.marginLeft + 12, currentY);
 
     // 7. Page Footer
     const footerY = pageHeight - PAGE.marginBottom;

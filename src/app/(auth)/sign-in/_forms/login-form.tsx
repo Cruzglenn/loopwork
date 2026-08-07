@@ -18,12 +18,32 @@ export function LoginForm() {
 
   const errors = state.status === 'validation-error' ? state.errors : undefined;
 
+  const getErrorMessage = () => {
+    if (state.status !== 'error' && state.status !== 'api-error') return undefined;
+    const rawError = state.error;
+
+    if (
+      !rawError ||
+      rawError === 'errorMessages.auth.invalidCredentials' ||
+      rawError.includes('invalidCredentials')
+    ) {
+      return 'Invalid email or password. Please check your credentials and try again.';
+    }
+
+    if (rawError.startsWith('errorMessages.')) {
+      try {
+        return t(rawError.replace('errorMessages.', ''));
+      } catch {
+        return 'Invalid email or password. Please check your credentials and try again.';
+      }
+    }
+
+    return rawError;
+  };
+
   return (
     <form noValidate action={loginUserAction} className="flex flex-col gap-y-4">
-      <FormInfo
-        state={state}
-        text={state.status === 'error' && state.error ? state.error : t('errorMessages.signInError')}
-      />
+      <FormInfo state={state} text={getErrorMessage()} />
       <FormControl errors={errors} name="email">
         {({ name, isInvalid, errorMessage }) => (
           <TextInput
