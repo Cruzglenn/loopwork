@@ -20,7 +20,10 @@ export function LoginForm() {
 
   return (
     <form noValidate action={loginUserAction} className="flex flex-col gap-y-4">
-      <FormInfo state={state} text={t('errorMessages.signInError')} />
+      <FormInfo
+        state={state}
+        text={state.status === 'error' && state.error ? state.error : t('errorMessages.signInError')}
+      />
       <FormControl errors={errors} name="email">
         {({ name, isSubmitting, isInvalid, errorMessage }) => (
           <TextInput

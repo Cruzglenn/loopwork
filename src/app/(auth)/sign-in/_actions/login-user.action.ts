@@ -44,6 +44,7 @@ export async function loginUser(
       path: '/',
     });
   } catch (err) {
+    console.error('[LOGIN_ACTION_ERROR]', err);
     return { ...state, form, ...handleActionError(err) };
   }
 
