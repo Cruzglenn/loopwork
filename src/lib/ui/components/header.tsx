@@ -16,10 +16,10 @@ export async function Header({ children, className }: PropsWithClassName<PropsWi
       )}
     >
       <div className="flex w-full max-w-[102rem] items-center justify-between">
-        <div className="flex items-center gap-x-3">
-          <DutydukeLogo height={24} />
+        <div className="flex shrink-0 items-center gap-x-3">
+          <DutydukeLogo height={24} variant="default" />
         </div>
-        <div className="ml-auto flex items-center gap-x-3">{children}</div>
+        <div className="ml-auto flex shrink-0 items-center gap-x-3">{children}</div>
       </div>
     </header>
   );

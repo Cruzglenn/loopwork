@@ -15,8 +15,8 @@ export function NotFoundContent() {
     <div className="flex size-full h-screen flex-1 items-center justify-center bg-white md:bg-background">
       <section className="rounded-lg bg-white p-12 md:shadow-md">
         <div className="flex flex-col gap-12">
-          <div className="h-[5.25rem] w-full">
-            <LoopworkLogo />
+          <div className="flex w-full items-center justify-center">
+            <LoopworkLogo variant="large" />
           </div>
           <div className="flex w-full flex-col items-center justify-center gap-8 md:w-[23rem]">
             <NotFound className="max-h-32 w-full" />

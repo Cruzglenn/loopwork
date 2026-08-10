@@ -12,8 +12,10 @@ export default function AuthLayout({ children }: PropsWithChildren): JSX.Element
         <Icon className="text-white/25" name="feedback" size="2xl" />
       </div>
       <main className="container mx-auto flex w-full items-center justify-center px-3.5">
-        <div className="w-full max-w-screen-md rounded-lg bg-white px-4 pb-14 pt-16 shadow-[0_4px_15px_0_rgba(39,55,75,0.06)] lg:px-8">
-          <LoopworkLogo />
+        <div className="w-full max-w-screen-md rounded-lg bg-white px-4 pb-14 pt-12 shadow-[0_4px_15px_0_rgba(39,55,75,0.06)] lg:px-8">
+          <div className="mb-6 flex justify-center">
+            <LoopworkLogo variant="large" />
+          </div>
           {children}
         </div>
       </main>
