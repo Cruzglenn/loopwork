@@ -23,7 +23,7 @@ export async function loginUser(
   formData: FormData,
 ): Promise<LoginUserActionState> {
   const form: LoginUserForm = {
-    email: formData.get('email') as string,
+    email: (formData.get('email') as string)?.trim().toLowerCase(),
     password: formData.get('password') as string,
   };
 

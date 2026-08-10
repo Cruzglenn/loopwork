@@ -17,7 +17,7 @@ export async function forgotPassword(
   formData: FormData,
 ): Promise<ForgotPasswordActionState> {
   const form = {
-    email: formData.get('email') as string,
+    email: (formData.get('email') as string)?.trim().toLowerCase(),
   };
 
   try {

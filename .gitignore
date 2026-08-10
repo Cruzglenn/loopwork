@@ -45,3 +45,4 @@ _uploads
 .history_uploads
 migration-from-old-app
 package-lock.json
+.env*
