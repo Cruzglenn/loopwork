@@ -2,8 +2,8 @@ import { readFile, readdir } from 'fs/promises';
 import { join, extname } from 'path';
 import { existsSync } from 'fs';
 import { type NextRequest } from 'next/server';
-import { hrisApi } from '@/api/hris';
 import { prisma } from '@/api/hris/prisma/client';
+import { supabaseStorageService } from '@/shared/service/file-persistance/file-persistence/supabase-storage.service';
 import { encodeFilenameForHeader } from '@/shared';
 
 const MIME_TYPES: Record<string, string> = {
@@ -15,33 +15,30 @@ const MIME_TYPES: Record<string, string> = {
   '.svg': 'image/svg+xml',
 };
 
-// Cache for avatar file lookups to avoid repeated directory scans
 const avatarCache = new Map<string, string | null>();
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const searchParams = request.nextUrl.searchParams;
-  const download = searchParams.get('download') !== '0'; // 0 - view 1 - download;
+  const download = searchParams.get('download') !== '0';
   const dir = searchParams.get('dir');
+
+  console.log('[DEBUG /api/photos] Requested id:', id, 'dir:', dir, 'download:', download);
 
   try {
     let buffer: Buffer | null = null;
     let fileName: string | undefined;
 
     if (dir === 'employee') {
-      // For employee avatars, read directly from filesystem
       const avatarId = id;
       const mediaDir = '_uploads/media';
 
-      // Check cache first
       let filePath: string | null = avatarCache.get(avatarId) ?? null;
 
       if (filePath === null && !avatarCache.has(avatarId)) {
-        // Not in cache, need to find the file
-        const extensions = ['.png', '.jpg', '.jpeg', '.gif'];
+        const extensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
         let found = false;
 
-        // Try exact matches first (covers 99% of cases)
         for (const ext of extensions) {
           const possiblePaths = [join(mediaDir, `${avatarId}${ext}`), join(mediaDir, ` ${avatarId}${ext}`)];
 
@@ -57,7 +54,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           if (found) break;
         }
 
-        // If not found with exact match, search for files starting with avatarId
         if (!found) {
           try {
             const files = await readdir(mediaDir);
@@ -75,41 +71,49 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           }
         }
 
-        // Cache the result (including null for not found)
         avatarCache.set(avatarId, filePath);
       }
 
-      // Read the file if found in legacy media directory
       if (filePath) {
         buffer = await readFile(filePath);
         if (!fileName) {
           fileName = filePath.split('/').pop();
         }
       } else {
-        // Fall back to document system lookup for newly uploaded photos
         const document = await prisma.document.findUnique({ where: { id: avatarId } });
 
         if (document) {
-          const actualFilePath = document.filePath.replace(/^\/uploads\//, '_uploads/');
-          buffer = await readFile(actualFilePath);
+          const storage = supabaseStorageService();
+          const actualFilePath = document.filePath.startsWith('supabase://')
+            ? document.filePath
+            : document.filePath.replace(/^\/uploads\//, '_uploads/');
+          buffer = await storage.getFile(actualFilePath);
           fileName = document.filePath.split('/').pop();
         }
       }
     } else {
-      // For company logo
-      const api = hrisApi;
-      const photo = await api.company.getCompanyLogo();
+      // Company logo lookup
+      let photo = await prisma.companyLogo.findUnique({ where: { id } });
+
+      if (!photo) {
+        photo = await prisma.companyLogo.findFirst();
+      }
+
+      console.log('[DEBUG /api/photos] Found company logo record:', photo);
 
       if (photo) {
+        const storage = supabaseStorageService();
         const actualFilePath = photo.filePath.startsWith('supabase://')
           ? photo.filePath
           : photo.filePath.replace(/^\/uploads\//, '_uploads/');
-        buffer = await api.documents.getFile('supabase-storage', actualFilePath);
+        console.log('[DEBUG /api/photos] Fetching logo from storage:', actualFilePath);
+        buffer = await storage.getFile(actualFilePath);
         fileName = photo.filePath.split('/').pop();
       }
     }
 
     if (buffer) {
+      console.log('[DEBUG /api/photos] Buffer size:', buffer.length);
       const ext = extname(fileName ?? '').toLowerCase();
       const contentType = MIME_TYPES[ext] ?? 'image/png';
 
@@ -130,9 +134,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
+    console.log('[DEBUG /api/photos] Returning 404 - buffer is null');
     return new Response(null, { status: 404 });
   } catch (error) {
-    console.error('Error serving photo:', error);
+    console.error('[DEBUG /api/photos] Error serving photo:', error);
     return new Response(null, { status: 404 });
   }
 }

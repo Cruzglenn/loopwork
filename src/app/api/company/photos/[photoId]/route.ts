@@ -1,6 +1,7 @@
 import { extname } from 'path';
 import { type NextRequest } from 'next/server';
-import { hrisApi } from '@/api/hris';
+import { prisma } from '@/api/hris/prisma/client';
+import { supabaseStorageService } from '@/shared/service/file-persistance/file-persistence/supabase-storage.service';
 import { encodeFilenameForHeader } from '@/shared';
 
 const MIME_TYPES: Record<string, string> = {
@@ -12,42 +13,70 @@ const MIME_TYPES: Record<string, string> = {
   '.svg': 'image/svg+xml',
 };
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ photoId: string }> | { photoId: string } },
+) {
   const searchParams = request.nextUrl.searchParams;
-  const download = searchParams.get('download') !== '0'; // 0 - view 1 - download;
+  const download = searchParams.get('download') !== '0';
 
-  const api = hrisApi;
-  const photo = await api.company.getCompanyLogo();
+  try {
+    const resolvedParams = await params;
+    const photoId = resolvedParams.photoId;
 
-  if (!photo) return new Response('Photo not found', { status: 404 });
+    console.log('[DEBUG /api/company/photos] Requested photoId:', photoId, 'download:', download);
 
-  const actualFilePath = photo.filePath.startsWith('supabase://')
-    ? photo.filePath
-    : photo.filePath.replace(/^\/uploads\//, '_uploads/');
+    let photo = await prisma.companyLogo.findUnique({
+      where: { id: photoId },
+    });
 
-  const buffer = await api.documents.getFile('supabase-storage', actualFilePath);
+    if (!photo) {
+      photo = await prisma.companyLogo.findFirst();
+    }
 
-  if (!buffer) {
-    return new Response('Photo not found', { status: 404 });
-  }
+    console.log('[DEBUG /api/company/photos] Found photo DB record:', photo);
 
-  const fileName = photo.filePath.split('/').pop() || 'photo';
-  const ext = extname(fileName).toLowerCase();
-  const contentType = MIME_TYPES[ext] ?? 'image/png';
+    if (!photo) {
+      console.log('[DEBUG /api/company/photos] No photo record found in DB');
+      return new Response('Photo not found', { status: 404 });
+    }
 
-  if (download) {
+    const storage = supabaseStorageService();
+    const actualFilePath = photo.filePath.startsWith('supabase://')
+      ? photo.filePath
+      : photo.filePath.replace(/^\/uploads\//, '_uploads/');
+
+    console.log('[DEBUG /api/company/photos] Fetching file path from storage:', actualFilePath);
+    const buffer = await storage.getFile(actualFilePath);
+
+    if (!buffer) {
+      console.log('[DEBUG /api/company/photos] Buffer is null for file path:', actualFilePath);
+      return new Response('Photo not found', { status: 404 });
+    }
+
+    console.log('[DEBUG /api/company/photos] Successfully fetched buffer size:', buffer.length);
+
+    const fileName = photo.filePath.split('/').pop() || 'photo';
+    const ext = extname(fileName).toLowerCase();
+    const contentType = MIME_TYPES[ext] ?? 'image/png';
+
+    if (download) {
+      return new Response(buffer as unknown as BodyInit, {
+        headers: {
+          'Content-Disposition': `attachment; ${encodeFilenameForHeader(fileName)}`,
+          'Content-Type': contentType,
+        },
+      });
+    }
+
     return new Response(buffer as unknown as BodyInit, {
       headers: {
-        'Content-Disposition': `attachment; ${encodeFilenameForHeader(fileName)}`,
         'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
+  } catch (err) {
+    console.error('[DEBUG /api/company/photos] Error in GET route:', err);
+    return new Response('Internal Server Error', { status: 500 });
   }
-
-  return new Response(buffer as unknown as BodyInit, {
-    headers: {
-      'Content-Type': contentType,
-      'Cache-Control': 'public, max-age=31536000, immutable',
-    },
-  });
 }
