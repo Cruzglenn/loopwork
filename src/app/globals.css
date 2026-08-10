@@ -6,10 +6,10 @@
 @layer base {
   :root {
     color-scheme: light;
-    /* Palette 1: Deep Teal & Warm Slate ("Emerald Operations") */
+    /* Palette: Royal Cobalt & Slate ("Unified Brand Harmony") - Matches DutyDuke / Loopwork Logo */
     --background: #f8fafc;
     --text: #0f172a;
-    --accent: #0f766e;
+    --accent: #2563eb;
     --success: #059669;
     --warning: #ef4444;
     --color-green: #059669;
@@ -20,7 +20,7 @@
     --color-green-700: #047857;
     --color-green-800: #065f46;
     --color-blue-100: #e0f2fe;
-    --color-blue-800: #0284c7;
+    --color-blue-800: #1d4ed8;
     --color-orange-100: #fef3c7;
     --color-orange-400: #fbbf24;
     --color-orange-800: #d97706;
@@ -35,8 +35,8 @@
     --color-gray-500: #64748b;
     --color-gray-600: #475569;
     --color-yellow: #d97706;
-    --color-medium-accent: #115e59;
-    --color-dark-accent: #134e4a;
+    --color-medium-accent: #1d4ed8;
+    --color-dark-accent: #1e3a8a;
     --color-black: #0f172a;
     --color-disabled-light-grey: #e2e8f0;
     --color-super-light-grey: #f8fafc;
@@ -47,21 +47,21 @@
     --color-medium-violet: #475569;
     --color-dark-violet: #1e293b;
     --color-disable-text: #94a3b8;
-    --color-hover: #f0fdfa;
-    --color-pressed: #ccfbf1;
+    --color-hover: #eff6ff;
+    --color-pressed: #dbeafe;
     --color-super-light-blue: #f8fafc;
-    --color-light-ice-blue: #ccfbf1;
-    --color-medium-ice-blue: #99f6e4;
-    --color-ice-blue: #2dd4bf;
+    --color-light-ice-blue: #dbeafe;
+    --color-medium-ice-blue: #bfdbfe;
+    --color-ice-blue: #3b82f6;
     --color-warning-light: rgba(217, 119, 6, 0.1);
     --color-warning-medium: rgba(217, 119, 6, 0.25);
     --color-modal-overlay: rgba(15, 23, 42, 0.4);
     --color-light-red: #ef4444;
     --color-medium-red: #dc2626;
     --color-dark-red: #b91c1c;
-    --color-secondary-default: #ccfbf1;
-    --color-secondary-hover: #f0fdfa;
-    --color-secondary-pressed: #99f6e4;
+    --color-secondary-default: #dbeafe;
+    --color-secondary-hover: #eff6ff;
+    --color-secondary-pressed: #bfdbfe;
     --color-divider: #e2e8f0;
     --shadow-modal: 0 4px 15px 0 rgba(15, 23, 42, 0.08);
     --shadow-menu: 0 4px 15px 0 rgba(15, 23, 42, 0.15);

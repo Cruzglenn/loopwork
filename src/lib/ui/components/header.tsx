@@ -1,7 +1,7 @@
 import { type PropsWithChildren } from 'react';
 import { cn, type PropsWithClassName } from '@/shared';
 import { type Api } from '@/api/hris';
-import { LoopworkLogo } from './loopwork-logo';
+import { DutydukeLogo } from './dutyduke-logo';
 
 type Props = {
   api: Api;
@@ -16,8 +16,8 @@ export async function Header({ children, className }: PropsWithClassName<PropsWi
       )}
     >
       <div className="flex w-full max-w-[102rem] items-center justify-between">
-        <div className="flex items-center">
-          <LoopworkLogo />
+        <div className="flex items-center gap-x-3">
+          <DutydukeLogo height={24} />
         </div>
         <div className="ml-auto flex items-center gap-x-3">{children}</div>
       </div>

@@ -11,7 +11,6 @@ import {
   type WithAccess,
   type Paginated,
   type OrderBy,
-  parseDate,
   cn,
   type PropsWithClassName,
   HRIS_ROUTES,
@@ -50,7 +49,7 @@ export function AbsencesGridList({
   reviewerId,
   disableActions = false,
   selectionMode = 'multiple',
-  dateFormat,
+  dateFormat: _dateFormat,
 }: PropsWithClassName<Props>) {
   const { isOpen, openModal, closeModal, setIsOpen } = useModal();
   const { selectedItems } = useSelectItems('ABSENCES');
