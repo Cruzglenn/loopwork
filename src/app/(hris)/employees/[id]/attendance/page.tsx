@@ -2,6 +2,8 @@ import { getTranslations } from 'next-intl/server';
 import { hrisApi } from '@/api/hris';
 import { Card, Table, TableHeader, TableBody, Row, Cell, Chip, NoResults } from '@/lib/ui';
 import { parseDate, type Columns } from '@/shared';
+import { getPermissionChecker } from '@/api/hris/authorization';
+import { PermissionAction, ResourceType } from '@/api/hris/authorization/permissions';
 import { ClockControlBanner } from './_components/clock-control-banner';
 
 type Props = {
@@ -27,10 +29,15 @@ export default async function EmployeeAttendancePage({ params }: Props) {
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - 7);
 
-  const [activeLog, logs] = await Promise.all([
+  const [me, permissionChecker, activeLog, logs] = await Promise.all([
+    hrisApi.auth.getMe(),
+    getPermissionChecker(),
     hrisApi.attendance.getTodayStatus(employeeId),
     hrisApi.attendance.getEmployeeWeeklyLogs(employeeId, startOfWeek, today),
   ]);
+
+  const isSelf = me.id === employeeId;
+  const canLogManual = permissionChecker.can(ResourceType.COMPANY_ATTENDANCE, PermissionAction.CREATE);
 
   const formatTime = (date: Date | string | null) => {
     if (!date) return '-';
@@ -59,7 +66,12 @@ export default async function EmployeeAttendancePage({ params }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <ClockControlBanner activeLog={activeLog} employeeId={employeeId} />
+      <ClockControlBanner
+        activeLog={activeLog}
+        canLogManual={canLogManual}
+        employeeId={employeeId}
+        isSelf={isSelf}
+      />
 
       <Card className="flex flex-col gap-4 p-6">
         <h3 className="text-lg font-semibold">{t('attendance.tabs.weekly')}</h3>

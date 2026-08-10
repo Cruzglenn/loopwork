@@ -14,8 +14,10 @@ export default async function RequestAbsencePage(props: { params: Promise<{ id: 
 
   return (
     <Card>
-      <BasicHeader className="pb-8">{t('header')}</BasicHeader>
-      <h2 className="pb-6">{t('subheader')}</h2>
+      <BasicHeader className="pb-2">{t('header')}</BasicHeader>
+      <p className="pb-6 text-sm text-gray-500">
+        Submit a leave request for manager review and approval (Pending Approval).
+      </p>
       <RequestAbsenceForm dateFormat={me.dateFormat} employeeId={id} />
     </Card>
   );
