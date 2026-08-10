@@ -113,23 +113,24 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-y-4">
-      <Card className="flex flex-col gap-3 px-4 py-5 shadow-[0_4px_15px_0_rgba(39,55,75,0.06)] sm:flex-row sm:items-center sm:justify-between md:px-6">
+      <Card className="flex flex-row items-center justify-between gap-x-3 p-4 shadow-[0_4px_15px_0_rgba(39,55,75,0.06)] md:px-6 md:py-5">
         <div className="flex flex-col gap-0.5">
-          <h1 className="text-lg">
-            <span className="font-semibold">{t('dashboard.welcome')} </span> {me.firstName} {me.lastName}
+          <h1 className="text-base font-semibold sm:text-lg">
+            <span className="font-normal text-gray-500">{t('dashboard.welcome')} </span>
+            {me.firstName} {me.lastName}
           </h1>
         </div>
         {companyLogo?.id && (
-          <div className="flex shrink-0 items-center justify-start sm:justify-end">
+          <div className="flex shrink-0 items-center justify-end">
             <picture className="inline-flex items-center">
               <Image
                 priority
                 alt="Company Logo"
-                className="h-8 max-h-9 w-auto max-w-[140px] object-contain sm:h-10 sm:max-h-10 sm:max-w-[160px]"
+                className="h-7 max-h-8 w-auto max-w-[100px] object-contain sm:h-9 sm:max-h-10 sm:max-w-[140px]"
                 draggable={false}
-                height={40}
+                height={36}
                 src={`/api/company/photos/${companyLogo.id}?download=0`}
-                width={140}
+                width={120}
               />
             </picture>
           </div>
