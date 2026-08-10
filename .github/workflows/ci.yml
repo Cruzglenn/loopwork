@@ -6,6 +6,18 @@ on:
   push:
     branches: [development, main]
 
+env:
+  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/loopwork?schema=public"
+  PRISMA_FIELD_ENCRYPTION_KEY: "k1.aes-gcm-256.12345678901234567890123456789012"
+  JWT_SECRET: "dummy_jwt_secret_for_ci_build_testing_purposes_only"
+  NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+  mailer_smtp_host: "localhost"
+  mailer_smtp_port: "1025"
+  mailer_smtp_isSecure: "false"
+  mailer_smtp_user: "user"
+  mailer_smtp_password: "password"
+  mailer_email_from: "Loopwork <test@example.com>"
+
 jobs:
   lint:
     name: Lint & Type Check
