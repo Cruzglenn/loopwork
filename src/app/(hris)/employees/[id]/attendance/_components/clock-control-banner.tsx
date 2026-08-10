@@ -67,7 +67,7 @@ export function ClockControlBanner({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3.5 sm:gap-4">
             <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-              <Icon name="clock" size="2xl" />
+              <Icon name="clock" size="sm" />
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-xs font-medium text-gray-500 sm:text-sm">{t('attendance.title')}</span>
@@ -175,7 +175,7 @@ export function ClockControlBanner({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3.5 sm:gap-4">
           <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-            <Icon name="clock" size="2xl" />
+            <Icon name="clock" size="sm" />
           </div>
           <div className="flex flex-col gap-0.5">
             <span className="text-xs font-medium text-gray-500 sm:text-sm">{t('attendance.title')}</span>
