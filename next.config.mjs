@@ -24,13 +24,7 @@ const nextConfig = {
   images: {
     localPatterns: [
       {
-        pathname: '/api/photos/**',
-      },
-      {
-        pathname: '/api/equipment/photos/**',
-      },
-      {
-        pathname: '/api/company/photos/**',
+        pathname: '/**',
       },
     ],
   },
