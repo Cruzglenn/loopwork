@@ -11,6 +11,8 @@ const MIME_TYPES: Record<string, string> = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml',
 };
 
 // Cache for avatar file lookups to avoid repeated directory scans
@@ -123,6 +125,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return new Response(buffer as unknown as BodyInit, {
         headers: {
           'Content-Type': contentType,
+          'Cache-Control': 'public, max-age=31536000, immutable',
         },
       });
     }
