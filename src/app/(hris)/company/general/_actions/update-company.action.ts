@@ -47,6 +47,8 @@ export async function updateCompany(
   }
 
   revalidatePath(HRIS_ROUTES.company.general);
+  revalidatePath(HRIS_ROUTES.dashboard);
+  revalidatePath('/', 'layout');
 
   return {
     form: {
