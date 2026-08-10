@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { getTranslations as getNextTranslations } from 'next-intl/server';
 import { type ReactNode } from 'react';
 import { getTranslations } from '@/shared/service/locale/get-translations';
@@ -59,7 +60,7 @@ export default async function DashboardPage() {
   const canViewAbsences = permissionChecker.can(ResourceType.COMPANY_ABSENCES, PermissionAction.VIEW);
   const canViewDocuments = permissionChecker.can(ResourceType.COMPANY_DOCUMENTS, PermissionAction.VIEW);
 
-  const [absences, documents, documentsCategories] = await Promise.all([
+  const [absences, documents, documentsCategories, companyLogo] = await Promise.all([
     canViewAbsences
       ? api.absences.getAllAbsences(
           1,
@@ -86,6 +87,7 @@ export default async function DashboardPage() {
         )
       : undefined,
     canViewDocuments ? api.documents.getAllCategories(undefined, 1, 'all') : undefined,
+    api.company.getCompanyLogo().catch(() => null),
   ]);
 
   const parsedCategories = documentsCategories
@@ -111,10 +113,27 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-y-4">
-      <Card className="flex flex-row items-center justify-between px-4 py-5 shadow-[0_4px_15px_0_rgba(39,55,75,0.06)]">
-        <h1 className="text-lg">
-          <span className="font-semibold">{t('dashboard.welcome')} </span> {me.firstName} {me.lastName}
-        </h1>
+      <Card className="flex flex-col gap-3 px-4 py-5 shadow-[0_4px_15px_0_rgba(39,55,75,0.06)] sm:flex-row sm:items-center sm:justify-between md:px-6">
+        <div className="flex flex-col gap-0.5">
+          <h1 className="text-lg">
+            <span className="font-semibold">{t('dashboard.welcome')} </span> {me.firstName} {me.lastName}
+          </h1>
+        </div>
+        {companyLogo?.id && (
+          <div className="flex shrink-0 items-center justify-start sm:justify-end">
+            <picture className="inline-flex items-center">
+              <Image
+                priority
+                alt="Company Logo"
+                className="h-8 max-h-9 w-auto max-w-[140px] object-contain sm:h-10 sm:max-h-10 sm:max-w-[160px]"
+                draggable={false}
+                height={40}
+                src={`/api/company/photos/${companyLogo.id}?download=0`}
+                width={140}
+              />
+            </picture>
+          </div>
+        )}
       </Card>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {canViewAbsences && absences && absencesWithEmployees && (
