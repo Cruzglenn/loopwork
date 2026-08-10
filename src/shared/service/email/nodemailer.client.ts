@@ -4,18 +4,21 @@ import { getEnv } from '@/shared/utils/get-env';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 export type EmailClient = Transporter<SMTPTransport.SentMessageInfo>;
+
 export function nodemailerClient(): EmailClient {
+  const host = getEnv('mailer_smtp_host', { required: true });
+  const isSecure = getEnv('mailer_smtp_isSecure', { required: true }) === 'true';
+  const port = parseInt(getEnv('mailer_smtp_port', { required: true }), 10);
+  const user = getEnv('mailer_smtp_user', { required: true });
+  const pass = getEnv('mailer_smtp_password', { required: true });
+
   return nodemailer.createTransport({
-    service: 'SMTP',
-    host: getEnv('mailer_smtp_host', { required: true }),
-    secure: getEnv('mailer_smtp_isSecure', { required: true }) === 'true',
-    port: <number>parseInt(getEnv('mailer_smtp_port', { required: true })),
+    host,
+    port,
+    secure: isSecure,
     auth: {
-      user: getEnv('mailer_smtp_user', { required: true }),
-      pass: getEnv('mailer_smtp_password', { required: true }),
+      user,
+      pass,
     },
-    // tls: {
-    //   secureProtocol: 'TLSv1_method',
-    // },
   });
 }
