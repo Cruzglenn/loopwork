@@ -89,11 +89,11 @@ export function ClockControlBanner({
           {canLogManual && (
             <Button
               className="w-full sm:w-auto"
+              icon="edit-2"
               intent="secondary"
               type="button"
               onClick={() => setShowManualForm((prev) => !prev)}
             >
-              <Icon className="mr-1.5" name="edit-2" />
               {showManualForm ? 'Cancel Manual Adjustment' : 'Log Manual Timecard'}
             </Button>
           )}
