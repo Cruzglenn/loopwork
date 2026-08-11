@@ -57,7 +57,13 @@ export function changePasswordRepository(db: OrganizationPrismaClient): ChangePa
 
     // 4. If employee exists but identity does NOT exist yet (or identityId was null), create & link it
     if (!identity && employee) {
-      const ownerRole = await db.role.findFirst({ where: { key: 'OWNER' } });
+      const isOwnerCandidate =
+        employee.role?.toLowerCase().includes('admin') || employee.role?.toLowerCase().includes('owner');
+      const targetRoleKey = isOwnerCandidate ? 'OWNER' : 'EMPLOYEE';
+      let role = await db.role.findFirst({ where: { key: targetRoleKey } });
+      if (!role && !isOwnerCandidate) {
+        role = await db.role.findFirst({ where: { key: 'EMPLOYEE' } });
+      }
 
       const newIdentity = await db.identity.create({
         data: {
@@ -71,11 +77,11 @@ export function changePasswordRepository(db: OrganizationPrismaClient): ChangePa
         data: { identityId: newIdentity.id },
       });
 
-      if (ownerRole) {
+      if (role) {
         await db.identityRole.create({
           data: {
             identityId: newIdentity.id,
-            roleId: ownerRole.id,
+            roleId: role.id,
           },
         });
       }
