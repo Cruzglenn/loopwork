@@ -89,39 +89,73 @@ export function PayrollRunsList({ runs }: Props) {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
-            {/* Download Bank Advice File */}
-            <Link href={`/api/payroll/export-bank?runId=${run.id}`} target="_blank">
-              <Button icon="arrow-down" intent="tertiary" size="sm">
-                Bank Export (CSV)
-              </Button>
-            </Link>
+          {/* Export & Governance Actions Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-3">
+            {/* Multi-Format Export Controls */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-gray-600">Export Bank Disbursement:</span>
+              <div className="shadow-xs inline-flex rounded-md" role="group">
+                <Link href={`/api/payroll/export-bank?runId=${run.id}&format=xlsx`} target="_blank">
+                  <Button icon="arrow-down" intent="tertiary" size="sm">
+                    Excel (.xlsx)
+                  </Button>
+                </Link>
+                <Link href={`/api/payroll/export-bank?runId=${run.id}&format=csv`} target="_blank">
+                  <Button icon="document-text" intent="tertiary" size="sm">
+                    CSV
+                  </Button>
+                </Link>
+                <Link href={`/api/payroll/export-bank?runId=${run.id}&format=pdf`} target="_blank">
+                  <Button icon="document-text" intent="tertiary" size="sm">
+                    PDF
+                  </Button>
+                </Link>
+              </div>
 
-            {/* Download Accounting GL Entries */}
-            <Link href={`/api/payroll/export-gl?runId=${run.id}`} target="_blank">
-              <Button icon="document-text" intent="tertiary" size="sm">
-                GL Journal Export
-              </Button>
-            </Link>
+              <span className="ml-2 text-xs font-semibold text-gray-600">Export GL Journal:</span>
+              <div className="shadow-xs inline-flex rounded-md" role="group">
+                <Link href={`/api/payroll/export-gl?runId=${run.id}&format=xlsx`} target="_blank">
+                  <Button icon="arrow-down" intent="tertiary" size="sm">
+                    Excel (.xlsx)
+                  </Button>
+                </Link>
+                <Link href={`/api/payroll/export-gl?runId=${run.id}&format=csv`} target="_blank">
+                  <Button icon="document-text" intent="tertiary" size="sm">
+                    CSV
+                  </Button>
+                </Link>
+                <Link href={`/api/payroll/export-gl?runId=${run.id}&format=pdf`} target="_blank">
+                  <Button icon="document-text" intent="tertiary" size="sm">
+                    PDF
+                  </Button>
+                </Link>
+              </div>
+            </div>
 
-            {/* Approve Action */}
-            {(run.status === 'DRAFT' || run.status === 'IN_REVIEW') && (
-              <Button intent="primary" isDisabled={isPending} size="sm" onClick={() => handleApprove(run.id)}>
-                Approve & Lock Batch
-              </Button>
-            )}
+            {/* Governance Action Buttons */}
+            <div className="flex items-center gap-2">
+              {(run.status === 'DRAFT' || run.status === 'IN_REVIEW') && (
+                <Button
+                  intent="primary"
+                  isDisabled={isPending}
+                  size="sm"
+                  onClick={() => handleApprove(run.id)}
+                >
+                  Approve & Lock Batch
+                </Button>
+              )}
 
-            {/* Mark as Paid Action */}
-            {run.status === 'APPROVED' && (
-              <Button
-                intent="primary"
-                isDisabled={isPending}
-                size="sm"
-                onClick={() => handleMarkPaid(run.id)}
-              >
-                Disburse & Mark Paid
-              </Button>
-            )}
+              {run.status === 'APPROVED' && (
+                <Button
+                  intent="primary"
+                  isDisabled={isPending}
+                  size="sm"
+                  onClick={() => handleMarkPaid(run.id)}
+                >
+                  Disburse & Mark Paid
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       ))}
