@@ -31,31 +31,45 @@ export function changePasswordRepository(db: OrganizationPrismaClient): ChangePa
 
   const changePassword = async (email: string, password: string) => {
     const normalizedEmail = email.trim().toLowerCase();
-    const identity = await db.identity.findFirst({
+
+    // 1. Find identity directly by email
+    let identity = await db.identity.findFirst({
       where: {
         email: normalizedEmail,
       },
     });
 
-    if (identity) {
-      await db.identity.update({
+    // 2. If not found directly, check if email matches employee workEmail
+    if (!identity) {
+      const employee = await db.employee.findFirst({
         where: {
-          id: identity.id,
-        },
-        data: {
-          password,
+          workEmail: normalizedEmail,
         },
       });
-    } else {
-      await db.identity.updateMany({
-        where: {
-          email: normalizedEmail,
-        },
-        data: {
-          password,
-        },
-      });
+
+      if (employee) {
+        identity = await db.identity.findFirst({
+          where: {
+            id: employee.id,
+          },
+        });
+      }
     }
+
+    if (!identity) {
+      console.error('[CHANGE_PASSWORD_REPOSITORY_ERROR] Identity not found for email:', normalizedEmail);
+      throw new Error(`Identity record not found for email: ${normalizedEmail}`);
+    }
+
+    // 3. Update password by Primary Key ID (never fails on encrypted field lookup)
+    await db.identity.update({
+      where: {
+        id: identity.id,
+      },
+      data: {
+        password,
+      },
+    });
   };
 
   return {
