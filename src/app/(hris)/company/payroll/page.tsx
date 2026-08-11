@@ -1,13 +1,9 @@
 import { getTranslations } from 'next-intl/server';
 import { hrisApi } from '@/api/hris';
-import { Card, NoResults, SearchInput } from '@/lib/ui';
+import { Card } from '@/lib/ui';
 import { BasicHeader } from '@/lib/ui/components/basic-header';
-import { Pagination } from '@/lib/ui/components/pagination';
-import { Stack } from '@/lib/ui/components/stack';
-import { PayrollTable } from './_components/payroll-table';
-import { PayrollGridList } from './_components/payroll-grid-list';
 import { GeneratePayrollButton } from './_components/generate-payroll-button';
-import { PayrollRunsList } from './_components/payroll-runs-list';
+import { PayrollTabs } from './_components/payroll-tabs';
 
 type Props = {
   searchParams: Promise<{
@@ -76,29 +72,14 @@ export default async function CompanyPayrollPage({ searchParams }: Props) {
                 </div>
               </div>
 
-              {/* Payroll Runs Master Batch List */}
-              {overview.runs && overview.runs.length > 0 && <PayrollRunsList runs={overview.runs} />}
-
-              <div className="border-t border-gray-200 pt-4">
-                <h3 className="mb-4 text-base font-semibold text-gray-800">All Individual Payslips</h3>
-                <Stack className="w-full flex-wrap justify-between" gapY="md">
-                  <SearchInput className="w-full max-w-sm" />
-                </Stack>
-              </div>
-
-              {overview.payslips.length === 0 ? (
-                <NoResults />
-              ) : (
-                <>
-                  <PayrollTable className="hidden xl:table" payslips={overview.payslips} />
-                  <PayrollGridList className="xl:hidden" payslips={overview.payslips} />
-                  <Pagination
-                    nextPage={overview.nextPage}
-                    prevPage={overview.prevPage}
-                    totalPages={overview.totalPages}
-                  />
-                </>
-              )}
+              {/* Tabbed Payroll View (Batch Runs vs Individual Payslips) */}
+              <PayrollTabs
+                nextPage={overview.nextPage}
+                payslips={overview.payslips}
+                prevPage={overview.prevPage}
+                runs={overview.runs || []}
+                totalPages={overview.totalPages}
+              />
             </div>
           </div>
         </Card>
