@@ -218,14 +218,17 @@ export function generateGLJournalEntriesPDF(run: PayrollRunDto): Promise<Buffer>
     doc.on('end', () => resolve(Buffer.concat(buffers)));
     doc.on('error', (err: Error) => reject(err));
 
+    const journalId = `JE-PAY-${run.id.slice(-6).toUpperCase()}`;
+    const dateStr = new Date(run.periodEnd).toISOString().split('T')[0];
+
     // Title & Header
     doc.fontSize(18).fillColor('#0F172A').text('General Ledger Journal Voucher', { align: 'center' });
     doc.moveDown(0.3);
-    doc.fontSize(11).fillColor('#475569').text(`Payroll Run: ${run.name}`, { align: 'center' });
+    doc
+      .fontSize(10)
+      .fillColor('#475569')
+      .text(`Voucher ID: ${journalId} | Date: ${dateStr} | Batch: ${run.name}`, { align: 'center' });
     doc.moveDown(1);
-
-    const journalId = `JE-PAY-${run.id.slice(-6).toUpperCase()}`;
-    const dateStr = new Date(run.periodEnd).toISOString().split('T')[0];
 
     let totalGross = 0;
     let totalTax = 0;
