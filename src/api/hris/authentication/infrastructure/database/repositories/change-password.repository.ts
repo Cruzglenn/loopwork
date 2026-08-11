@@ -15,7 +15,7 @@ export function changePasswordRepository(db: OrganizationPrismaClient): ChangePa
 
   const clearPendingChangePasswordRequests = async (email?: string) => {
     if (email) {
-      await db.changePasswordRequest.delete({ where: { email } });
+      await db.changePasswordRequest.deleteMany({ where: { email } });
 
       return;
     }

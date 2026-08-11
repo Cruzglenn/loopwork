@@ -36,6 +36,7 @@ export async function forgotPassword(
     return { ...state, status: 'success', data: { email } };
   } catch (err) {
     logger.info(err);
+    console.error('[FORGOT_PASSWORD_ACTION_ERROR]', err);
     return { ...state, ...handleActionError(err) };
   }
 }

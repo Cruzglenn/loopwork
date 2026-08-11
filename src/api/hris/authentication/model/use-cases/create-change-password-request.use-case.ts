@@ -28,6 +28,7 @@ export function createChangePasswordRequestUseCase(
         return;
       }
       logger.error(err);
+      console.error('[CREATE_CHANGE_PASSWORD_USE_CASE_ERROR]', err);
       throw new ApiError(400, AUTHENTICATION_ERROR_MESSAGES.changePasswordRequest.CHANGE_PASSWORD_FAILED);
     }
   };
