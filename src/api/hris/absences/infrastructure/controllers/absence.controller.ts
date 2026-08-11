@@ -166,29 +166,32 @@ export function absenceController(organization: OrganizationContext) {
       throw new ApiError(403, 'Forbidden: No permission to view absences');
     }
 
-    // If employee permission with SELF scope and issuerIds are provided, verify ownership
-    if (permissionCheck.requiresOwnershipVerification && issuerIds && issuerIds.length > 0) {
+    // If employee permission with SELF scope, enforce ownership verification and restrict to current user's employee ID
+    if (permissionCheck.requiresOwnershipVerification) {
       const currentEmployee = await employeeQueriesImpl.getEmployeeByIdentityId(checker.getIdentityId());
       if (!currentEmployee) {
         throw new ApiError(403, 'Forbidden: Can only view own absences');
       }
-      // Filter to only show absences for the current user's employee record
-      const filteredIssuerIds = issuerIds.filter((id) => id === currentEmployee.id);
-      if (filteredIssuerIds.length === 0) {
-        // No valid absences to show
-        return {
-          items: [],
-          totalItems: 0,
-          totalPages: 0,
-          nextPage: null,
-          prevPage: null,
-          _access: {
-            actions: [],
-          },
-        };
+      if (issuerIds && issuerIds.length > 0) {
+        const filteredIssuerIds = issuerIds.filter((id) => id === currentEmployee.id);
+        if (filteredIssuerIds.length === 0) {
+          // No valid absences to show
+          return {
+            items: [],
+            totalItems: 0,
+            totalPages: 0,
+            nextPage: null,
+            prevPage: null,
+            _access: {
+              actions: [],
+            },
+          };
+        }
+        issuerIds = filteredIssuerIds;
+      } else {
+        // Automatically constrain issuerIds to the logged-in employee's ID when SELF scope
+        issuerIds = [currentEmployee.id];
       }
-      // Use filtered issuerIds
-      issuerIds = filteredIssuerIds;
     } else if (!permissionCheck.hasPermission && issuerIds && issuerIds.length > 0) {
       // If no company permission but issuerIds provided, check employee permission
       const canViewEmployee = checker.can(ResourceType.EMPLOYEE_ABSENCES, PermissionAction.VIEW);
