@@ -104,7 +104,10 @@ export function permissionRepository(db: OrganizationPrismaClient): PermissionRe
     },
 
     getAllRoles: async (): Promise<RoleDefinition[]> => {
-      const existingEmployee = await db.role.findUnique({ where: { key: 'EMPLOYEE' } });
+      const existingEmployee = await db.role.findUnique({
+        where: { key: 'EMPLOYEE' },
+        include: { permissions: true },
+      });
       if (!existingEmployee) {
         try {
           const empRole = await db.role.create({
@@ -160,28 +163,24 @@ export function permissionRepository(db: OrganizationPrismaClient): PermissionRe
                 actions: ['VIEW', 'CREATE'] as PermissionAction[],
                 scope: 'SELF' as PermissionScope,
               },
-              {
-                roleId: empRole.id,
-                resource: 'COMPANY_ABSENCES' as ResourceType,
-                actions: ['VIEW'] as PermissionAction[],
-                scope: 'ALL' as PermissionScope,
-              },
-              {
-                roleId: empRole.id,
-                resource: 'COMPANY_DOCUMENTS' as ResourceType,
-                actions: ['VIEW'] as PermissionAction[],
-                scope: 'ALL' as PermissionScope,
-              },
-              {
-                roleId: empRole.id,
-                resource: 'COMPANY_BENEFITS' as ResourceType,
-                actions: ['VIEW'] as PermissionAction[],
-                scope: 'ALL' as PermissionScope,
-              },
             ],
           });
         } catch {
           // Ignore concurrent seed errors
+        }
+      } else {
+        // Clean up legacy company-wide permissions wrongly seeded to standard EMPLOYEE role
+        const companyResourcesToRemove = ['COMPANY_ABSENCES', 'COMPANY_DOCUMENTS', 'COMPANY_BENEFITS'];
+        const permissionsToDelete = existingEmployee.permissions.filter((p) =>
+          companyResourcesToRemove.includes(p.resource),
+        );
+        if (permissionsToDelete.length > 0) {
+          await db.rolePermission.deleteMany({
+            where: {
+              roleId: existingEmployee.id,
+              resource: { in: companyResourcesToRemove as unknown as ResourceType[] },
+            },
+          });
         }
       }
 

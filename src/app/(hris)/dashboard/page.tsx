@@ -9,7 +9,7 @@ import { hrisApi } from '@/api/hris';
 import { HRIS_ROUTES, parseDate } from '@/shared';
 import { type IconNames } from '@/lib/ui/icons';
 import { getPermissionChecker } from '@/api/hris/authorization';
-import { PermissionAction, ResourceType } from '@/api/hris/authorization/permissions';
+import { PermissionAction, PermissionScope, ResourceType } from '@/api/hris/authorization/permissions';
 import { AbsencesGridList } from '../company/absences/_components/absences-grid-list';
 import { DocumentsGridList } from '../company/documents/_components';
 import { DEFAULT_CATEGORY_PRIORITY, DOCUMENTS_CATEGORIES_PRIORITY } from '../company/documents/_constants';
@@ -57,8 +57,22 @@ export default async function DashboardPage() {
   const permissionChecker = await getPermissionChecker();
 
   // Check permissions for absences and documents
-  const canViewAbsences = permissionChecker.can(ResourceType.COMPANY_ABSENCES, PermissionAction.VIEW);
+  const isOwner = permissionChecker.isOwner();
+  const canViewCompanyAbsences = permissionChecker.can(ResourceType.COMPANY_ABSENCES, PermissionAction.VIEW);
+  const companyAbsencesScope = permissionChecker.getScope(ResourceType.COMPANY_ABSENCES);
+  const isCompanyAbsencesManager =
+    isOwner || (canViewCompanyAbsences && companyAbsencesScope === PermissionScope.ALL);
+
+  const canViewEmployeeAbsences = permissionChecker.can(
+    ResourceType.EMPLOYEE_ABSENCES,
+    PermissionAction.VIEW,
+  );
+  const canViewAbsences = isCompanyAbsencesManager || canViewEmployeeAbsences;
   const canViewDocuments = permissionChecker.can(ResourceType.COMPANY_DOCUMENTS, PermissionAction.VIEW);
+
+  const absencesWidgetHref = isCompanyAbsencesManager
+    ? HRIS_ROUTES.company.absences.base
+    : HRIS_ROUTES.employees.absence.base(me.id);
 
   const [absences, documents, documentsCategories, companyLogo] = await Promise.all([
     canViewAbsences
@@ -66,11 +80,11 @@ export default async function DashboardPage() {
           1,
           undefined,
           undefined,
-          ['PENDING'],
+          isCompanyAbsencesManager ? ['PENDING'] : ['APPROVED', 'PENDING'],
           ['HOLIDAY', 'PERSONAL', 'SICK'],
           'requestedAt-desc',
           7,
-          undefined,
+          isCompanyAbsencesManager ? undefined : [me.id],
         )
       : undefined,
     canViewDocuments
@@ -139,11 +153,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {canViewAbsences && absences && absencesWithEmployees && (
           <Card className="min-h-[428px] shadow-[0_4px_15px_0_rgba(39,55,75,0.06)]">
-            <WidgetHeader
-              heading={t('dashboard.absences')}
-              href={HRIS_ROUTES.company.absences.base}
-              icon="sun-fog"
-            />
+            <WidgetHeader heading={t('dashboard.absences')} href={absencesWidgetHref} icon="sun-fog" />
             {absences.items.length > 0 ? (
               <AbsencesGridList
                 disableActions
