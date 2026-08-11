@@ -16,11 +16,12 @@ export const activateOrganizationAccount = <EmailTemplate>{
 export const changePasswordTemplate = <EmailTemplate>{
   subject: 'Prośba o zmianę hasła do Twojego konta Loopwork',
   html: templateHtml(
-    'Otrzymaliśmy prośbę o zmianę hasła do Twojego konta w Loopwork',
+    'Prośba o zmianę hasła',
     `
-      <ol>
-        <li>Kliknij w poniższy link, aby zmienić hasło</li>
-        <li>Jeśli nie prosiłeś/aś o zmianę hasła, zignoruj tę wiadomość. Twoje obecne hasło pozostaje bezpieczne i nie wprowadzono żadnych zmian na Twoim koncie.</li>
+      <p style="margin: 0 0 16px 0;">Otrzymaliśmy prośbę o zmianę hasła do Twojego konta w <strong>Loopwork</strong>.</p>
+      <ol style="margin: 0 0 16px 0; padding-left: 20px; color: #475569;">
+        <li style="margin-bottom: 8px;">Kliknij poniższy przycisk, aby ustawić nowe hasło.</li>
+        <li>Jeśli nie prosiłeś/aś o zmianę hasła, zignoruj tę wiadomość. Twoje obecne hasło pozostaje bezpieczne.</li>
       </ol>
   `,
     { label: 'Zmień hasło', href: '{{changePasswordLink}}' },

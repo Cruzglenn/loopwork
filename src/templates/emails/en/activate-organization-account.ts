@@ -16,11 +16,12 @@ export const activateOrganizationAccount = <EmailTemplate>{
 export const changePasswordTemplate = <EmailTemplate>{
   subject: 'Change Password Request for your Loopwork account',
   html: templateHtml(
-    'We have received a request to change the password for your account in Loopwork',
+    'Change Password Request',
     `
-      <ol>
-        <li>Click on the link below to change your password</li>
-        <li><p>If you did not request a password change, please disregard this email. Your current password remains secure, and no changes have been made to your account.</p></li>
+      <p style="margin: 0 0 16px 0;">We received a request to reset the password for your <strong>Loopwork</strong> account.</p>
+      <ol style="margin: 0 0 16px 0; padding-left: 20px; color: #475569;">
+        <li style="margin-bottom: 8px;">Click the button below to set a new password for your account.</li>
+        <li>If you did not request a password change, please disregard this email. Your password remains secure and no changes were made.</li>
       </ol>
   `,
     { label: 'Change password', href: '{{changePasswordLink}}' },
