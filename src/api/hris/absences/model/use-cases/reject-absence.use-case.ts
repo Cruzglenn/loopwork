@@ -9,7 +9,7 @@ export function rejectAbsenceUseCase(
   employeesAcl: EmployeesAcl,
   emailSenderService: EmailSenderService,
 ) {
-  return async (absenceIds: CUID[], reviewerId: CUID, locale: string) => {
+  return async (absenceIds: CUID[], reviewerId: CUID, _locale: string) => {
     try {
       for (const id of absenceIds) {
         const absence = await repository.getAbsenceById(id);

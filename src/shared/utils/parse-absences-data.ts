@@ -17,7 +17,7 @@ const ABSENCE_COLOR_MAP = {
 
 export async function parseAbsencesData(
   employees: ParseAbsencesDataProps,
-  locale: string,
+  _locale: string,
 ): Promise<SchedulerData> {
   const t = await getTranslations();
 
