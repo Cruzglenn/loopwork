@@ -39,7 +39,7 @@ export function changePasswordRepository(db: OrganizationPrismaClient): ChangePa
       },
     });
 
-    // 2. If not found directly, check if email matches employee workEmail
+    // 2. If not found directly by email, check via employee workEmail and identityId
     if (!identity) {
       const employee = await db.employee.findFirst({
         where: {
@@ -47,10 +47,10 @@ export function changePasswordRepository(db: OrganizationPrismaClient): ChangePa
         },
       });
 
-      if (employee) {
+      if (employee && employee.identityId) {
         identity = await db.identity.findFirst({
           where: {
-            id: employee.id,
+            id: employee.identityId,
           },
         });
       }
@@ -61,13 +61,14 @@ export function changePasswordRepository(db: OrganizationPrismaClient): ChangePa
       throw new Error(`Identity record not found for email: ${normalizedEmail}`);
     }
 
-    // 3. Update password by Primary Key ID (never fails on encrypted field lookup)
+    // 3. Update password and sync email by Primary Key ID
     await db.identity.update({
       where: {
         id: identity.id,
       },
       data: {
         password,
+        email: normalizedEmail,
       },
     });
   };
