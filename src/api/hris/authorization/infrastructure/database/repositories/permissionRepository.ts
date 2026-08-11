@@ -104,6 +104,87 @@ export function permissionRepository(db: OrganizationPrismaClient): PermissionRe
     },
 
     getAllRoles: async (): Promise<RoleDefinition[]> => {
+      const existingEmployee = await db.role.findUnique({ where: { key: 'EMPLOYEE' } });
+      if (!existingEmployee) {
+        try {
+          const empRole = await db.role.create({
+            data: {
+              name: 'Employee',
+              key: 'EMPLOYEE',
+              description: 'Standard employee role with self-service access',
+              isSystem: false,
+            },
+          });
+
+          await db.rolePermission.createMany({
+            data: [
+              {
+                roleId: empRole.id,
+                resource: 'EMPLOYEES' as ResourceType,
+                actions: ['VIEW' as PermissionAction],
+                scope: 'ALL' as PermissionScope,
+              },
+              {
+                roleId: empRole.id,
+                resource: 'EMPLOYEE_PROFILE' as ResourceType,
+                actions: ['VIEW', 'EDIT'] as PermissionAction[],
+                scope: 'SELF' as PermissionScope,
+              },
+              {
+                roleId: empRole.id,
+                resource: 'EMPLOYEE_ABSENCES' as ResourceType,
+                actions: ['VIEW', 'CREATE', 'EDIT', 'DELETE'] as PermissionAction[],
+                scope: 'SELF' as PermissionScope,
+              },
+              {
+                roleId: empRole.id,
+                resource: 'EMPLOYEE_DOCUMENTS' as ResourceType,
+                actions: ['VIEW'] as PermissionAction[],
+                scope: 'SELF' as PermissionScope,
+              },
+              {
+                roleId: empRole.id,
+                resource: 'EMPLOYEE_EQUIPMENT' as ResourceType,
+                actions: ['VIEW'] as PermissionAction[],
+                scope: 'SELF' as PermissionScope,
+              },
+              {
+                roleId: empRole.id,
+                resource: 'EMPLOYEE_EARNINGS' as ResourceType,
+                actions: ['VIEW'] as PermissionAction[],
+                scope: 'SELF' as PermissionScope,
+              },
+              {
+                roleId: empRole.id,
+                resource: 'EMPLOYEE_FEEDBACK' as ResourceType,
+                actions: ['VIEW', 'CREATE'] as PermissionAction[],
+                scope: 'SELF' as PermissionScope,
+              },
+              {
+                roleId: empRole.id,
+                resource: 'COMPANY_ABSENCES' as ResourceType,
+                actions: ['VIEW'] as PermissionAction[],
+                scope: 'ALL' as PermissionScope,
+              },
+              {
+                roleId: empRole.id,
+                resource: 'COMPANY_DOCUMENTS' as ResourceType,
+                actions: ['VIEW'] as PermissionAction[],
+                scope: 'ALL' as PermissionScope,
+              },
+              {
+                roleId: empRole.id,
+                resource: 'COMPANY_BENEFITS' as ResourceType,
+                actions: ['VIEW'] as PermissionAction[],
+                scope: 'ALL' as PermissionScope,
+              },
+            ],
+          });
+        } catch {
+          // Ignore concurrent seed errors
+        }
+      }
+
       const roles = await db.role.findMany({
         include: { permissions: true },
         orderBy: [{ isSystem: 'desc' }, { name: 'asc' }],
