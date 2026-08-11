@@ -43,6 +43,8 @@ export function ForgotPasswordForm() {
         <FormControl errors={errors} name="email">
           {({ name, isInvalid, errorMessage }) => (
             <TextInput
+              key={`email-${state.form?.email || ''}`}
+              defaultValue={state.form?.email || ''}
               errorMessage={errorMessage}
               inputProps={{ placeholder: tNext('forms.email') }}
               isInvalid={isInvalid}

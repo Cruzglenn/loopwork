@@ -47,7 +47,9 @@ export function LoginForm() {
       <FormControl errors={errors} name="email">
         {({ name, isInvalid, errorMessage }) => (
           <TextInput
+            key={`email-${state.form?.email || ''}`}
             autoComplete="email"
+            defaultValue={state.form?.email || ''}
             errorMessage={errorMessage}
             inputProps={{ placeholder: tNext('forms.email') }}
             isInvalid={isInvalid}
@@ -61,7 +63,9 @@ export function LoginForm() {
       <FormControl errors={errors} name="password">
         {({ name, isInvalid, errorMessage }) => (
           <PasswordInput
+            key={`password-${state.form?.password || ''}`}
             autoComplete="current-password"
+            defaultValue={state.form?.password || ''}
             errorMessage={errorMessage}
             inputProps={{ placeholder: tNext('forms.password') }}
             isInvalid={isInvalid}
