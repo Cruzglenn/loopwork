@@ -26,11 +26,15 @@ export function emailSenderService(
 
     const { subject, html } = templateService<EmailTemplate>(template, variables);
 
-    const from =
+    let from =
       process.env.mailer_email_from ||
       process.env.MAILER_EMAIL_FROM ||
       getEnv('mailer_email_from') ||
       'Loopwork HRIS <noreply@' + 'eurielleivy.site>';
+
+    if (!from || from.includes('resend.dev') || from.includes('onboarding')) {
+      from = 'Loopwork HRIS <noreply@' + 'eurielleivy.site>';
+    }
 
     await emailClient.sendMail({
       from,
