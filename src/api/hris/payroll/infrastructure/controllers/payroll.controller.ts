@@ -13,6 +13,8 @@ import {
   generatePayrollRunUseCase,
   updateSalaryConfigUseCase,
   updatePayslipStatusUseCase,
+  approvePayrollRunUseCase,
+  markPayrollRunPaidUseCase,
 } from '../../model/use-cases';
 
 export function payrollController(organization: OrganizationContext) {
@@ -21,6 +23,14 @@ export function payrollController(organization: OrganizationContext) {
 
   const generatePayrollRun = async (_checker: PermissionChecker, dto: GeneratePayrollRunDto) => {
     return generatePayrollRunUseCase(repository, organization.db)(dto);
+  };
+
+  const approvePayrollRun = async (checker: PermissionChecker, runId: CUID) => {
+    return approvePayrollRunUseCase(repository)(runId, checker.getIdentityId());
+  };
+
+  const markPayrollRunPaid = async (_checker: PermissionChecker, runId: CUID) => {
+    return markPayrollRunPaidUseCase(repository)(runId);
   };
 
   const updateSalaryConfig = async (_checker: PermissionChecker, dto: UpdateSalaryConfigDto) => {
@@ -47,6 +57,14 @@ export function payrollController(organization: OrganizationContext) {
     return queries.getEmployeePayslips(employeeId);
   };
 
+  const getPayrollRunById = async (_checker: PermissionChecker, id: CUID) => {
+    return queries.getPayrollRunById(id);
+  };
+
+  const getAllPayrollRuns = async (_checker: PermissionChecker) => {
+    return queries.getAllPayrollRuns();
+  };
+
   const getCompanyPayrollOverview = async (
     _checker: PermissionChecker,
     startDate?: Date,
@@ -64,6 +82,16 @@ export function payrollController(organization: OrganizationContext) {
       ResourceType.COMPANY_PAYROLL,
       PermissionAction.CREATE,
       generatePayrollRun,
+    ),
+    approvePayrollRun: requirePermission(
+      ResourceType.COMPANY_PAYROLL,
+      PermissionAction.EDIT,
+      approvePayrollRun,
+    ),
+    markPayrollRunPaid: requirePermission(
+      ResourceType.COMPANY_PAYROLL,
+      PermissionAction.EDIT,
+      markPayrollRunPaid,
     ),
     updateSalaryConfig: requirePermission(
       ResourceType.COMPANY_PAYROLL,
@@ -83,5 +111,7 @@ export function payrollController(organization: OrganizationContext) {
     getSalaryConfig: privateRoute(getSalaryConfig),
     getPayslipById: privateRoute(getPayslipById),
     getEmployeePayslips: privateRoute(getEmployeePayslips),
+    getPayrollRunById: privateRoute(getPayrollRunById),
+    getAllPayrollRuns: privateRoute(getAllPayrollRuns),
   };
 }

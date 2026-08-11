@@ -4,6 +4,7 @@ import {
   type CompanyPayrollOverviewDto,
   type EmployeeSalaryConfigDto,
   type PayslipDto,
+  type PayrollRunDto,
   type PayrollStatusDto,
 } from '../../../model/dtos/payroll.dto';
 
@@ -11,6 +12,8 @@ export type PayrollQueries = {
   getSalaryConfig: (employeeId: CUID) => Promise<EmployeeSalaryConfigDto | null>;
   getPayslipById: (id: CUID) => Promise<PayslipDto | null>;
   getEmployeePayslips: (employeeId: CUID) => Promise<PayslipDto[]>;
+  getPayrollRunById: (id: CUID) => Promise<PayrollRunDto | null>;
+  getAllPayrollRuns: () => Promise<PayrollRunDto[]>;
   getCompanyPayrollOverview: (
     startDate?: Date,
     endDate?: Date,
@@ -59,6 +62,52 @@ export function payrollQueries(db: OrganizationPrismaClient): PayrollQueries {
     return payslips as unknown as PayslipDto[];
   };
 
+  const getPayrollRunById = async (id: CUID): Promise<PayrollRunDto | null> => {
+    const run = await db.payrollRun.findUnique({
+      where: { id },
+      include: {
+        payslips: {
+          include: {
+            items: true,
+            employee: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                avatarId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return (run as unknown as PayrollRunDto) || null;
+  };
+
+  const getAllPayrollRuns = async (): Promise<PayrollRunDto[]> => {
+    const runs = await db.payrollRun.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        payslips: {
+          include: {
+            items: true,
+            employee: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                avatarId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return runs as unknown as PayrollRunDto[];
+  };
+
   const getCompanyPayrollOverview = async (
     startDate?: Date,
     endDate?: Date,
@@ -71,32 +120,53 @@ export function payrollQueries(db: OrganizationPrismaClient): PayrollQueries {
     const periodStart = startDate || new Date(now.getFullYear(), now.getMonth(), 1);
     const periodEnd = endDate || new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    const allPayslips = await db.payslip.findMany({
-      where: {
-        ...(statusFilter && statusFilter !== 'ALL' && { status: statusFilter as PayrollStatusDto }),
-        ...(search && {
+    const [allPayslips, allRuns] = await Promise.all([
+      db.payslip.findMany({
+        where: {
+          ...(statusFilter && statusFilter !== 'ALL' && { status: statusFilter as PayrollStatusDto }),
+          ...(search && {
+            employee: {
+              OR: [
+                { firstName: { contains: search, mode: 'insensitive' } },
+                { lastName: { contains: search, mode: 'insensitive' } },
+              ],
+            },
+          }),
+        },
+        include: {
+          items: true,
           employee: {
-            OR: [
-              { firstName: { contains: search, mode: 'insensitive' } },
-              { lastName: { contains: search, mode: 'insensitive' } },
-            ],
-          },
-        }),
-      },
-      include: {
-        items: true,
-        employee: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-            avatarId: true,
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              role: true,
+              avatarId: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+      }),
+      db.payrollRun.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+          payslips: {
+            include: {
+              items: true,
+              employee: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  role: true,
+                  avatarId: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
 
     const totalPayslips = allPayslips.length;
     let totalGrossPay = 0;
@@ -122,6 +192,7 @@ export function payrollQueries(db: OrganizationPrismaClient): PayrollQueries {
       totalNetPay: Math.round(totalNetPay),
       totalDeductions: Math.round(totalDeductions),
       payslips: paginatedPayslips as unknown as PayslipDto[],
+      runs: allRuns as unknown as PayrollRunDto[],
       page: validPage,
       perPage,
       totalPages,
@@ -134,6 +205,8 @@ export function payrollQueries(db: OrganizationPrismaClient): PayrollQueries {
     getSalaryConfig,
     getPayslipById,
     getEmployeePayslips,
+    getPayrollRunById,
+    getAllPayrollRuns,
     getCompanyPayrollOverview,
   };
 }

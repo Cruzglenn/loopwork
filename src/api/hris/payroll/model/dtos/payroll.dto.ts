@@ -1,6 +1,7 @@
 import { type CUID } from '@/shared';
 
 export type PayrollStatusDto = 'DRAFT' | 'APPROVED' | 'PAID';
+export type PayrollRunStatusDto = 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'PAID' | 'CANCELLED';
 export type PayPeriodDto = 'WEEKLY' | 'BIWEEKLY' | 'SEMIMONTHLY' | 'MONTHLY';
 export type PayslipItemTypeDto = 'ALLOWANCE' | 'DEDUCTION';
 
@@ -27,6 +28,7 @@ export type PayslipItemDto = {
 
 export type PayslipDto = {
   id: CUID;
+  payrollRunId?: CUID | null;
   employeeId: CUID;
   periodStart: Date;
   periodEnd: Date;
@@ -51,7 +53,26 @@ export type PayslipDto = {
   };
 };
 
+export type PayrollRunDto = {
+  id: CUID;
+  name: string;
+  periodStart: Date;
+  periodEnd: Date;
+  status: PayrollRunStatusDto;
+  totalGross: number;
+  totalDeductions: number;
+  totalNet: number;
+  totalPayslips: number;
+  approvedById?: string | null;
+  paidAt?: Date | null;
+  notes?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  payslips?: PayslipDto[];
+};
+
 export type GeneratePayrollRunDto = {
+  name?: string;
   periodStart: Date;
   periodEnd: Date;
   employeeIds?: CUID[];
@@ -74,6 +95,7 @@ export type CompanyPayrollOverviewDto = {
   totalNetPay: number;
   totalDeductions: number;
   payslips: PayslipDto[];
+  runs?: PayrollRunDto[];
   page: number;
   perPage: number;
   totalPages: number;

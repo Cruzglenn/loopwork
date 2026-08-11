@@ -4,6 +4,14 @@ enum PayrollStatus {
   PAID
 }
 
+enum PayrollRunStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PAID
+  CANCELLED
+}
+
 enum PayPeriod {
   WEEKLY
   BIWEEKLY
@@ -14,6 +22,25 @@ enum PayPeriod {
 enum PayslipItemType {
   ALLOWANCE
   DEDUCTION
+}
+
+model PayrollRun {
+  id              String           @id @default(cuid())
+  name            String
+  periodStart     DateTime
+  periodEnd       DateTime
+  status          PayrollRunStatus @default(DRAFT)
+  totalGross      Float            @default(0)
+  totalDeductions Float            @default(0)
+  totalNet        Float            @default(0)
+  totalPayslips   Int              @default(0)
+  approvedById    String?
+  paidAt          DateTime?
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  payslips        Payslip[]
 }
 
 model EmployeeSalaryConfig {
@@ -31,6 +58,7 @@ model EmployeeSalaryConfig {
 
 model Payslip {
   id              String        @id @default(cuid())
+  payrollRunId    String?
   employeeId      String
   periodStart     DateTime
   periodEnd       DateTime
@@ -46,10 +74,12 @@ model Payslip {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
+  payrollRun      PayrollRun?   @relation(fields: [payrollRunId], references: [id], onDelete: SetNull)
   employee        Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   items           PayslipItem[]
 
   @@index([employeeId])
+  @@index([payrollRunId])
   @@index([status])
 }
 

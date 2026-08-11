@@ -7,6 +7,7 @@ import { Stack } from '@/lib/ui/components/stack';
 import { PayrollTable } from './_components/payroll-table';
 import { PayrollGridList } from './_components/payroll-grid-list';
 import { GeneratePayrollButton } from './_components/generate-payroll-button';
+import { PayrollRunsList } from './_components/payroll-runs-list';
 
 type Props = {
   searchParams: Promise<{
@@ -75,9 +76,15 @@ export default async function CompanyPayrollPage({ searchParams }: Props) {
                 </div>
               </div>
 
-              <Stack className="w-full flex-wrap justify-between" gapY="md">
-                <SearchInput className="w-full max-w-sm" />
-              </Stack>
+              {/* Payroll Runs Master Batch List */}
+              {overview.runs && overview.runs.length > 0 && <PayrollRunsList runs={overview.runs} />}
+
+              <div className="border-t border-gray-200 pt-4">
+                <h3 className="mb-4 text-base font-semibold text-gray-800">All Individual Payslips</h3>
+                <Stack className="w-full flex-wrap justify-between" gapY="md">
+                  <SearchInput className="w-full max-w-sm" />
+                </Stack>
+              </div>
 
               {overview.payslips.length === 0 ? (
                 <NoResults />

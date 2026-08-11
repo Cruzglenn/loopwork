@@ -4,7 +4,9 @@ import { type PayrollRepository } from '../../../model/repositories/payroll.repo
 import {
   type EmployeeSalaryConfigDto,
   type PayslipDto,
+  type PayrollRunDto,
   type PayrollStatusDto,
+  type PayrollRunStatusDto,
   type UpdateSalaryConfigDto,
 } from '../../../model/dtos/payroll.dto';
 
@@ -36,7 +38,111 @@ export function payrollRepository(db: OrganizationPrismaClient): PayrollReposito
     return (config as unknown as EmployeeSalaryConfigDto) || null;
   };
 
+  const createPayrollRun = async (data: {
+    name: string;
+    periodStart: Date;
+    periodEnd: Date;
+    notes?: string;
+    totalGross: number;
+    totalDeductions: number;
+    totalNet: number;
+    totalPayslips: number;
+  }): Promise<PayrollRunDto> => {
+    const run = await db.payrollRun.create({
+      data: {
+        name: data.name,
+        periodStart: data.periodStart,
+        periodEnd: data.periodEnd,
+        notes: data.notes || null,
+        totalGross: data.totalGross,
+        totalDeductions: data.totalDeductions,
+        totalNet: data.totalNet,
+        totalPayslips: data.totalPayslips,
+        status: 'DRAFT',
+      },
+    });
+    return run as unknown as PayrollRunDto;
+  };
+
+  const updatePayrollRunStatus = async (
+    id: CUID,
+    status: PayrollRunStatusDto,
+    approvedById?: string,
+    paidAt?: Date,
+  ): Promise<PayrollRunDto> => {
+    const updatedRun = await db.payrollRun.update({
+      where: { id },
+      data: {
+        status,
+        ...(approvedById && { approvedById }),
+        ...(paidAt !== undefined && { paidAt }),
+      },
+    });
+
+    // Cascade status to child payslips
+    if (status === 'APPROVED') {
+      await db.payslip.updateMany({
+        where: { payrollRunId: id },
+        data: { status: 'APPROVED' },
+      });
+    } else if (status === 'PAID') {
+      await db.payslip.updateMany({
+        where: { payrollRunId: id },
+        data: { status: 'PAID', paidAt: paidAt || new Date() },
+      });
+    }
+
+    return updatedRun as unknown as PayrollRunDto;
+  };
+
+  const findPayrollRunById = async (id: CUID): Promise<PayrollRunDto | null> => {
+    const run = await db.payrollRun.findUnique({
+      where: { id },
+      include: {
+        payslips: {
+          include: {
+            items: true,
+            employee: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                avatarId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return (run as unknown as PayrollRunDto) || null;
+  };
+
+  const getAllPayrollRuns = async (): Promise<PayrollRunDto[]> => {
+    const runs = await db.payrollRun.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        payslips: {
+          include: {
+            items: true,
+            employee: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                avatarId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return runs as unknown as PayrollRunDto[];
+  };
+
   const createPayslip = async (data: {
+    payrollRunId?: CUID;
     employeeId: CUID;
     periodStart: Date;
     periodEnd: Date;
@@ -51,6 +157,7 @@ export function payrollRepository(db: OrganizationPrismaClient): PayrollReposito
   }): Promise<PayslipDto> => {
     const payslip = await db.payslip.create({
       data: {
+        payrollRunId: data.payrollRunId || null,
         employeeId: data.employeeId,
         periodStart: data.periodStart,
         periodEnd: data.periodEnd,
@@ -152,6 +259,10 @@ export function payrollRepository(db: OrganizationPrismaClient): PayrollReposito
   return {
     upsertSalaryConfig,
     findSalaryConfigByEmployeeId,
+    createPayrollRun,
+    updatePayrollRunStatus,
+    findPayrollRunById,
+    getAllPayrollRuns,
     createPayslip,
     updatePayslipStatus,
     findPayslipById,
