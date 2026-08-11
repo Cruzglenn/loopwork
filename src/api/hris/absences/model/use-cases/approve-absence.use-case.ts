@@ -18,6 +18,10 @@ export function approveAbsenceUseCase(
           continue;
         }
 
+        if (absence.issuerId === reviewerId) {
+          throw new ApiError(403, 'Forbidden: You cannot approve your own absence request');
+        }
+
         const employee = await employeesAcl.getEmployeeById(absence.issuerId);
         if (!employee) {
           throw new ApiError(404, `Employee with id ${absence.issuerId} not found`);

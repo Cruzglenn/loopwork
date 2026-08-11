@@ -54,17 +54,14 @@ export function absenceController(organization: OrganizationContext) {
   };
 
   const approveAbsence = async (checker: PermissionChecker, absenceId: CUID[] | 'all', reviewerId: CUID) => {
-    // Check if user can edit company or employee absences (approval is a form of edit)
-    const permissionCheck = checkResourcePermission(
-      checker,
-      ResourceType.COMPANY_ABSENCES,
-      PermissionAction.EDIT,
-    );
-    if (!permissionCheck.hasPermission) {
+    // Require company-level edit/manage permission to approve absences
+    const canApproveCompanyAbsences =
+      checker.isOwner() || checker.can(ResourceType.COMPANY_ABSENCES, PermissionAction.EDIT);
+    if (!canApproveCompanyAbsences) {
       throw new ApiError(403, 'Forbidden: No permission to approve absences');
     }
 
-    let ids = [];
+    let ids: CUID[] = [];
     const user = await authAclImpl.getLoggedInUser();
 
     if (absenceId === 'all') {
@@ -81,6 +78,17 @@ export function absenceController(organization: OrganizationContext) {
       ids = allAbsences.items.map((absence) => absence.id);
     } else {
       ids = absenceId;
+    }
+
+    // Verify self-approval: reviewer cannot approve their own absence request
+    const currentEmployee = await employeeQueriesImpl.getEmployeeByIdentityId(checker.getIdentityId());
+    if (currentEmployee) {
+      for (const id of ids) {
+        const targetAbsence = await absenceRepositoryImpl.getAbsenceById(id);
+        if (targetAbsence && targetAbsence.issuerId === currentEmployee.id) {
+          throw new ApiError(403, 'Forbidden: You cannot approve your own absence request');
+        }
+      }
     }
 
     await approveAbsenceUseCase(absenceRepositoryImpl, employeesAclImpl, await emailSenderService())(
@@ -91,17 +99,14 @@ export function absenceController(organization: OrganizationContext) {
   };
 
   const rejectAbsence = async (checker: PermissionChecker, absenceId: CUID[] | 'all', reviewerId: CUID) => {
-    // Check if user can edit company or employee absences (rejection is a form of edit)
-    const permissionCheck = checkResourcePermission(
-      checker,
-      ResourceType.COMPANY_ABSENCES,
-      PermissionAction.EDIT,
-    );
-    if (!permissionCheck.hasPermission) {
+    // Require company-level edit/manage permission to reject absences
+    const canRejectCompanyAbsences =
+      checker.isOwner() || checker.can(ResourceType.COMPANY_ABSENCES, PermissionAction.EDIT);
+    if (!canRejectCompanyAbsences) {
       throw new ApiError(403, 'Forbidden: No permission to reject absences');
     }
 
-    let ids = [];
+    let ids: CUID[] = [];
     const user = await authAclImpl.getLoggedInUser();
 
     if (absenceId === 'all') {
@@ -118,6 +123,17 @@ export function absenceController(organization: OrganizationContext) {
       ids = allAbsences.items.map((absence) => absence.id);
     } else {
       ids = absenceId;
+    }
+
+    // Verify self-rejection: reviewer cannot reject their own absence request
+    const currentEmployee = await employeeQueriesImpl.getEmployeeByIdentityId(checker.getIdentityId());
+    if (currentEmployee) {
+      for (const id of ids) {
+        const targetAbsence = await absenceRepositoryImpl.getAbsenceById(id);
+        if (targetAbsence && targetAbsence.issuerId === currentEmployee.id) {
+          throw new ApiError(403, 'Forbidden: You cannot reject your own absence request');
+        }
+      }
     }
 
     await rejectAbsenceUseCase(absenceRepositoryImpl, employeesAclImpl, await emailSenderService())(
@@ -230,6 +246,7 @@ export function absenceController(organization: OrganizationContext) {
     const canEdit = checker.can(resourceType, PermissionAction.EDIT);
     const canDelete = checker.can(resourceType, PermissionAction.DELETE);
     const isOwner = checker.isOwner();
+    const canApproveOrReject = isOwner || checker.can(ResourceType.COMPANY_ABSENCES, PermissionAction.EDIT);
 
     // Use owner access if owner, otherwise build actions based on permissions
     const actions: AbsenceAction[] = isOwner
@@ -241,8 +258,8 @@ export function absenceController(organization: OrganizationContext) {
             'select',
             // Add create if user has CREATE permission
             ...(canCreate ? (['create'] as const) : []),
-            // Add approve/reject if user has EDIT permission (approve/reject are forms of edit)
-            ...(canEdit ? (['approve', 'reject'] as const) : []),
+            // Add approve/reject only if user has company-level edit/manage permission
+            ...(canApproveOrReject ? (['approve', 'reject'] as const) : []),
             // Add delete if user has DELETE permission
             ...(canDelete ? (['delete'] as const) : []),
           ] as AbsenceAction[])

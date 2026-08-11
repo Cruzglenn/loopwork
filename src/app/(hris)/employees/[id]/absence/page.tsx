@@ -31,11 +31,8 @@ export default async function EmployeeAbsencePage(props: Props) {
   const isOwner = me.roles.includes('OWNER');
   const permissionChecker = await getPermissionChecker();
   const canEditCompanyAbsences = permissionChecker.can(ResourceType.COMPANY_ABSENCES, PermissionAction.EDIT);
-  const canEditEmployeeAbsences = permissionChecker.can(
-    ResourceType.EMPLOYEE_ABSENCES,
-    PermissionAction.EDIT,
-  );
-  const canManagePendingAbsences = isOwner || canEditCompanyAbsences || canEditEmployeeAbsences;
+  // Manage pending absences requires company-level edit permission or Owner role, AND viewing another employee's page (or admin view)
+  const canManagePendingAbsences = isOwner || (canEditCompanyAbsences && me.id !== id);
 
   const [absences, globalAbsences, pendingAbsences] = await Promise.all([
     api.absences.getAllAbsences(

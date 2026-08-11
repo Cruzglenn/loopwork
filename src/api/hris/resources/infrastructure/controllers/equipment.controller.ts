@@ -266,13 +266,10 @@ export function equipmentController(organizationContext: OrganizationContext): E
   };
 
   const assignEquipment = async (checker: PermissionChecker, equipmentId: CUID, assigneeId: CUID) => {
-    // Check if user can assign equipment (company or employee level)
-    const assignCheck = checkResourcePermission(
-      checker,
-      ResourceType.COMPANY_EQUIPMENT,
-      PermissionAction.ASSIGN,
-    );
-    if (!assignCheck.hasPermission) {
+    // Assigning company equipment requires company-level assign permission or Owner role
+    const canAssignCompanyEquipment =
+      checker.isOwner() || checker.can(ResourceType.COMPANY_EQUIPMENT, PermissionAction.ASSIGN);
+    if (!canAssignCompanyEquipment) {
       throw new ApiError(403, 'Forbidden: No permission to assign equipment');
     }
 
@@ -293,13 +290,10 @@ export function equipmentController(organizationContext: OrganizationContext): E
   };
 
   const unassignEquipment = async (checker: PermissionChecker, equipmentId: CUID) => {
-    // Check if user can assign equipment (unassign requires same permission, company or employee level)
-    const unassignCheck = checkResourcePermission(
-      checker,
-      ResourceType.COMPANY_EQUIPMENT,
-      PermissionAction.ASSIGN,
-    );
-    if (!unassignCheck.hasPermission) {
+    // Unassigning company equipment requires company-level assign permission or Owner role
+    const canUnassignCompanyEquipment =
+      checker.isOwner() || checker.can(ResourceType.COMPANY_EQUIPMENT, PermissionAction.ASSIGN);
+    if (!canUnassignCompanyEquipment) {
       throw new ApiError(403, 'Forbidden: No permission to unassign equipment');
     }
 
