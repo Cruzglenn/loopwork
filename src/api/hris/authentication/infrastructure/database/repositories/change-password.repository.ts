@@ -30,14 +30,32 @@ export function changePasswordRepository(db: OrganizationPrismaClient): ChangePa
   };
 
   const changePassword = async (email: string, password: string) => {
-    await db.identity.update({
+    const normalizedEmail = email.trim().toLowerCase();
+    const identity = await db.identity.findFirst({
       where: {
-        email,
-      },
-      data: {
-        password,
+        email: normalizedEmail,
       },
     });
+
+    if (identity) {
+      await db.identity.update({
+        where: {
+          id: identity.id,
+        },
+        data: {
+          password,
+        },
+      });
+    } else {
+      await db.identity.updateMany({
+        where: {
+          email: normalizedEmail,
+        },
+        data: {
+          password,
+        },
+      });
+    }
   };
 
   return {

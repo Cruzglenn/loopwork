@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import {
   type ChangePasswordMessageSender,
   type ChangePasswordPayload,
@@ -7,10 +8,27 @@ import { getEnv } from '@/shared/utils/get-env';
 import { notificationsServiceFactory } from '@/shared/service/email/notifications-service.factory';
 
 export function sendChangePasswordTokenService(): ChangePasswordMessageSender {
-  const appUrl = getEnv('NEXT_PUBLIC_APP_URL', { required: true }).replace(/\/+$/, '');
-
   return {
     async sendChangePasswordRequestToken(payload: ChangePasswordPayload): Promise<void> {
+      let baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || getEnv('NEXT_PUBLIC_APP_URL') || 'https://www.eurielleivy.site';
+
+      try {
+        const reqHeaders = await headers();
+        const hostHeader = reqHeaders.get('x-forwarded-host') || reqHeaders.get('host');
+        const proto = reqHeaders.get('x-forwarded-proto') || 'https';
+        if (hostHeader) {
+          baseUrl = `${proto}://${hostHeader}`;
+        }
+      } catch {
+        // Fallback to configured baseUrl
+      }
+
+      if (baseUrl.includes('vercel.app')) {
+        baseUrl = 'https://www.eurielleivy.site';
+      }
+
+      const appUrl = baseUrl.replace(/\/+$/, '');
       const changePasswordLink = `${appUrl}${AUTH_ROUTES.resetPassword(payload.token)}`;
 
       const notificationsService = await notificationsServiceFactory();
