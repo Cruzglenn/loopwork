@@ -243,7 +243,6 @@ export function absenceController(organization: OrganizationContext) {
 
     const canView = checker.can(resourceType, PermissionAction.VIEW);
     const canCreate = checker.can(resourceType, PermissionAction.CREATE);
-    const canEdit = checker.can(resourceType, PermissionAction.EDIT);
     const canDelete = checker.can(resourceType, PermissionAction.DELETE);
     const isOwner = checker.isOwner();
     const canApproveOrReject = isOwner || checker.can(ResourceType.COMPANY_ABSENCES, PermissionAction.EDIT);
