@@ -30,7 +30,7 @@ export async function parseAbsencesData(
     },
     data: employee.absences.map(({ id, startDate, endDate, status, days, type }) => ({
       id,
-      description: `${parseDate(startDate, locale)} - ${parseDate(endDate, locale)}`,
+      description: `${parseDate(startDate, 'DD/MM/YYYY')} - ${parseDate(endDate, 'DD/MM/YYYY')}`,
       startDate,
       endDate,
       occupancy: dayjs(endDate).diff(startDate, 'second'),

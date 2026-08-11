@@ -42,8 +42,8 @@ export function rejectAbsenceUseCase(
               template: 'rejectAbsenceTemplate',
               variables: {
                 firstName: employee.firstName,
-                startDate: parseDate(absence.startDate, locale),
-                endDate: parseDate(absence.endDate, locale),
+                startDate: parseDate(absence.startDate, 'DD/MM/YYYY'),
+                endDate: parseDate(absence.endDate, 'DD/MM/YYYY'),
                 days: absence.days,
               },
             },
