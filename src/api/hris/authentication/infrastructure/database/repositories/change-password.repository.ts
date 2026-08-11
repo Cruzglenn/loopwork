@@ -39,21 +39,48 @@ export function changePasswordRepository(db: OrganizationPrismaClient): ChangePa
       },
     });
 
-    // 2. If not found directly by email, check via employee workEmail and identityId
-    if (!identity) {
-      const employee = await db.employee.findFirst({
+    // 2. Find employee by workEmail
+    const employee = await db.employee.findFirst({
+      where: {
+        workEmail: normalizedEmail,
+      },
+    });
+
+    // 3. If identity not found by email, check via employee.identityId
+    if (!identity && employee && employee.identityId) {
+      identity = await db.identity.findFirst({
         where: {
-          workEmail: normalizedEmail,
+          id: employee.identityId,
+        },
+      });
+    }
+
+    // 4. If employee exists but identity does NOT exist yet (or identityId was null), create & link it
+    if (!identity && employee) {
+      const ownerRole = await db.role.findFirst({ where: { key: 'OWNER' } });
+
+      const newIdentity = await db.identity.create({
+        data: {
+          email: normalizedEmail,
+          password,
         },
       });
 
-      if (employee && employee.identityId) {
-        identity = await db.identity.findFirst({
-          where: {
-            id: employee.identityId,
+      await db.employee.update({
+        where: { id: employee.id },
+        data: { identityId: newIdentity.id },
+      });
+
+      if (ownerRole) {
+        await db.identityRole.create({
+          data: {
+            identityId: newIdentity.id,
+            roleId: ownerRole.id,
           },
         });
       }
+
+      return;
     }
 
     if (!identity) {
@@ -61,7 +88,7 @@ export function changePasswordRepository(db: OrganizationPrismaClient): ChangePa
       throw new Error(`Identity record not found for email: ${normalizedEmail}`);
     }
 
-    // 3. Update password and sync email by Primary Key ID
+    // 5. Update existing identity password and sync email
     await db.identity.update({
       where: {
         id: identity.id,
@@ -71,6 +98,14 @@ export function changePasswordRepository(db: OrganizationPrismaClient): ChangePa
         email: normalizedEmail,
       },
     });
+
+    // Ensure employee is linked to identity if not already
+    if (employee && !employee.identityId) {
+      await db.employee.update({
+        where: { id: employee.id },
+        data: { identityId: identity.id },
+      });
+    }
   };
 
   return {
