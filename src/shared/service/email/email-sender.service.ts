@@ -30,7 +30,7 @@ export function emailSenderService(
       process.env.mailer_email_from ||
       process.env.MAILER_EMAIL_FROM ||
       getEnv('mailer_email_from') ||
-      'Loopwork HRIS <onboarding@resend.dev>';
+      'Loopwork HRIS <noreply@' + 'eurielleivy.site>';
 
     await emailClient.sendMail({
       from,
