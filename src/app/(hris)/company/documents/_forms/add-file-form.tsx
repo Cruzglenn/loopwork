@@ -206,7 +206,7 @@ export function AddFileForm({ categories, dateFormat }: Props): JSX.Element {
 
             {/* Attached Files List */}
             {files.length > 0 && (
-              <div className="shadow-xs rounded-xl border border-gray-200 bg-white p-4">
+              <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                 <FilesList data={files} onDeleteFile={deleteFileFromList} />
               </div>
             )}
