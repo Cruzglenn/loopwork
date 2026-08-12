@@ -79,7 +79,29 @@ export async function createIdentityAction(
       const allRoles = await api.authorization.roles.getAllRoles();
       const roleKey = await getRoleKey(validation.data.roleKey, allRoles);
 
-      const identityId = await api.auth.createIdentity(validation.data.email, roleKey);
+      let identityId: string;
+      const existingIdentity = await api.auth.getIdentityByEmail(validation.data.email);
+
+      if (existingIdentity) {
+        identityId = existingIdentity.id;
+        const tempPassword = StringTools.createRandomString(12);
+        await api.auth.updateIdentity(identityId, { password: tempPassword });
+        if (roleKey) {
+          const currentRoles = await api.authorization.roles.getRolesForIdentity(identityId);
+          const roleToAssign = allRoles.find((r) => r.key === roleKey);
+          if (roleToAssign && !currentRoles.some((r) => r.id === roleToAssign.id)) {
+            for (const role of currentRoles) {
+              if (!role.isSystem) {
+                await api.authorization.roles.removeRoleFromIdentity(identityId, role.id);
+              }
+            }
+            await api.authorization.roles.assignRoleToIdentity(identityId, roleToAssign.id);
+          }
+        }
+        await sendInviteService().sendInvite({ email: validation.data.email, tempPassword });
+      } else {
+        identityId = await api.auth.createIdentity(validation.data.email, roleKey);
+      }
 
       await updateEmployeeStatusIfNeeded(api, employeeId);
       await api.employees.updateEmployeeGeneralInfo(employeeId, { identityId });
@@ -111,20 +133,30 @@ export async function createIdentityAction(
     const api = hrisApi;
     const employeeId = formData.get('employeeId') as CUID;
 
-    const employee = await api.employees.getEmployeeById(employeeId);
-    if (employee.identityId) {
-      return {
-        ...prevState,
-        form,
-        status: 'error',
-        error: 'Employee already has an identity. Please refresh the page and use the edit form.',
-      };
-    }
-
     const allRoles = await api.authorization.roles.getAllRoles();
     const roleKey = await getRoleKey(validation.data.roleKey, allRoles);
 
-    const identityId = await api.auth.createIdentityManually(validation.data.email, form.password, roleKey);
+    let identityId: string;
+    const existingIdentity = await api.auth.getIdentityByEmail(validation.data.email);
+
+    if (existingIdentity) {
+      identityId = existingIdentity.id;
+      await api.auth.updateIdentity(identityId, { password: form.password });
+      if (roleKey) {
+        const currentRoles = await api.authorization.roles.getRolesForIdentity(identityId);
+        const roleToAssign = allRoles.find((r) => r.key === roleKey);
+        if (roleToAssign && !currentRoles.some((r) => r.id === roleToAssign.id)) {
+          for (const role of currentRoles) {
+            if (!role.isSystem) {
+              await api.authorization.roles.removeRoleFromIdentity(identityId, role.id);
+            }
+          }
+          await api.authorization.roles.assignRoleToIdentity(identityId, roleToAssign.id);
+        }
+      }
+    } else {
+      identityId = await api.auth.createIdentityManually(validation.data.email, form.password, roleKey);
+    }
 
     await updateEmployeeStatusIfNeeded(api, employeeId);
     await api.employees.updateEmployeeGeneralInfo(employeeId, { identityId });
