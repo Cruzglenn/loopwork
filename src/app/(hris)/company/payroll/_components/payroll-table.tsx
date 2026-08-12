@@ -35,7 +35,7 @@ export function PayrollTable({ payslips, className }: PropsWithClassName<Props>)
   };
 
   return (
-    <div className={cn('overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-xs', className)}>
+    <div className={cn('overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm', className)}>
       <Table aria-label={t('payroll.title')} className="w-full min-w-[850px]">
         <TableHeader columns={PAYROLL_COLUMNS}>
           <Column />

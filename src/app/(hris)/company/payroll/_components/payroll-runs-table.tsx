@@ -74,7 +74,7 @@ export function PayrollRunsTable({ runs, className }: PropsWithClassName<Props>)
       />
 
       {/* Desktop Data Table (>= 1280px) */}
-      <div className="shadow-xs hidden overflow-x-auto rounded-xl border border-gray-200 bg-white xl:block">
+      <div className="hidden overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm xl:block">
         <Table aria-label="Payroll Runs & Batches" className="w-full min-w-[900px]">
           <TableHeader columns={RUN_COLUMNS}>
             <Column aria-label="Actions" />
