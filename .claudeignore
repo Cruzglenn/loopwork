@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+.yarn/
+
+# Build and output
+.next/
+out/
+build/
+dist/
+.prisma-generated/
+*.tsbuildinfo
+
+# Uploads and heavy media
+_uploads/
+.history_uploads/
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.gif
+*.zip
+*.tar.gz
+
+# Environment and secrets
+.env*
+
+# Logs and cache
+*.log
+.cache/
+.vercel/

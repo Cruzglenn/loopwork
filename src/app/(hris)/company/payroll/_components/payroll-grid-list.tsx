@@ -33,7 +33,12 @@ export function PayrollGridList({ payslips, className }: PropsWithClassName<Prop
       searchParamKey="PAYROLL"
     >
       {(item) => (
-        <GridListItem key={item.id} className="border-b border-divider py-3" id={item.id}>
+        <GridListItem
+          key={item.id}
+          className="border-b border-divider py-3"
+          id={item.id}
+          textValue={item.employee ? `${item.employee.firstName} ${item.employee.lastName}` : 'Employee'}
+        >
           <div className="flex w-full flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-1">
               <span className="font-semibold text-gray-900">

@@ -13,13 +13,13 @@ type Props = {
 };
 
 const RUN_COLUMNS: Columns = {
-  name: { label: 'Batch Name' },
-  period: { label: 'Pay Period' },
-  employees: { label: 'Employees' },
-  gross: { label: 'Gross Pay' },
-  deductions: { label: 'Deductions' },
-  net: { label: 'Net Payout' },
-  status: { label: 'Status' },
+  name: { label: 'payroll.runs.batchName' },
+  period: { label: 'payroll.runs.period' },
+  employees: { label: 'payroll.runs.employees' },
+  gross: { label: 'payroll.runs.grossPay' },
+  deductions: { label: 'payroll.runs.deductions' },
+  net: { label: 'payroll.runs.netPayout' },
+  status: { label: 'payroll.runs.status' },
 };
 
 export function PayrollRunsTable({ runs }: Props) {
@@ -62,7 +62,7 @@ export function PayrollRunsTable({ runs }: Props) {
       <div className="shadow-xs overflow-hidden rounded-xl border border-gray-200 bg-white">
         <Table aria-label="Payroll Runs & Batches">
           <TableHeader columns={RUN_COLUMNS}>
-            <Column />
+            <Column aria-label="Actions" />
           </TableHeader>
           <TableBody>
             {runs.map((run) => (

@@ -879,6 +879,16 @@
       "totalDeductions": "Total Deductions",
       "totalPayslips": "Total Payslips"
     },
+    "runs": {
+      "batchName": "Batch Name",
+      "period": "Pay Period",
+      "employees": "Employees",
+      "grossPay": "Gross Pay",
+      "deductions": "Deductions",
+      "netPayout": "Net Payout",
+      "status": "Status",
+      "actions": "Actions"
+    },
     "table": {
       "employee": "Employee",
       "period": "Pay Period",

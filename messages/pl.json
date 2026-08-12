@@ -823,6 +823,16 @@
       "totalDeductions": "Suma Potrąceń",
       "totalPayslips": "Liczba Odcinków"
     },
+    "runs": {
+      "batchName": "Nazwa partii",
+      "period": "Okres rozliczeniowy",
+      "employees": "Pracownicy",
+      "grossPay": "Kwota brutto",
+      "deductions": "Potrącenia",
+      "netPayout": "Netto do wypłaty",
+      "status": "Status",
+      "actions": "Akcje"
+    },
     "table": {
       "employee": "Pracownik",
       "period": "Okres",
