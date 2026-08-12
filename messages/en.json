@@ -818,7 +818,10 @@
     "noFiles": "No files yet",
     "addFile": "Add new files",
     "dragAndDrop": "Drag and drop files here",
-    "or": "or"
+    "or": "or",
+    "upload": {
+      "error": "Upload failed"
+    }
   },
   "table": {
     "headers": {
@@ -1219,7 +1222,8 @@
           "success": "Deleting successful"
         },
         "upload": {
-          "success": "Uploading successful"
+          "success": "Uploading successful",
+          "error": "Upload failed"
         }
       },
       "earnings": {
@@ -1296,7 +1300,8 @@
           "success": "Deleting successful"
         },
         "upload": {
-          "success": "Uploading successful"
+          "success": "Uploading successful",
+          "error": "Upload failed"
         }
       }
     },

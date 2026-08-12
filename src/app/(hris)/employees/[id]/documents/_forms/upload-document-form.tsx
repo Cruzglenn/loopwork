@@ -18,18 +18,18 @@ export function UploadEmployeeDocumentForm({ employeeId }: Props) {
   const t = useTranslations('employees.documents');
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const formSubmitRef = useRef<HTMLButtonElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   return (
     <>
-      <form noValidate action={uploadEmployeeDocumentAction} id="uploadEmployeeDocumentForm">
+      <form noValidate action={uploadEmployeeDocumentAction} id="uploadEmployeeDocumentForm" ref={formRef}>
         <input
           multiple
           className="hidden"
           name="document"
           ref={inputRef}
           type="file"
-          onChange={() => formSubmitRef.current?.click()}
+          onChange={() => formRef.current?.requestSubmit()}
         />
         <FormControl>
           {({ isSubmitting }) => (
@@ -45,7 +45,6 @@ export function UploadEmployeeDocumentForm({ employeeId }: Props) {
             </Button>
           )}
         </FormControl>
-        <Button className="hidden" ref={formSubmitRef} type="submit"></Button>
       </form>
       <DocumentUploadErrorBar formStatus={state} />
     </>

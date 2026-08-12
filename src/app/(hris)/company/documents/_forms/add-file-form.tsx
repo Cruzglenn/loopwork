@@ -7,6 +7,7 @@ import { useTranslations as useNextTranslations } from 'next-intl';
 import { useTranslations } from '@/shared/service/locale/use-translations';
 import { HRIS_ROUTES, type CUID } from '@/shared';
 import { Button, ComboBox, DateField, Form, FormControl, Icon, TextInput } from '@/lib/ui';
+import { useToast } from '@/lib/ui/hooks';
 import { type FileData } from '@/shared/types/file';
 import { FilesList } from '../_components';
 import { addDocument } from '../_actions';
@@ -20,6 +21,7 @@ export function AddFileForm({ categories, dateFormat }: Props): JSX.Element {
   const t = useTranslations('company.documents.add');
   const tNext = useNextTranslations('company.documents.add');
   const router = useRouter();
+  const toast = useToast();
 
   const [files, setFiles] = useState<FileData[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -94,6 +96,14 @@ export function AddFileForm({ categories, dateFormat }: Props): JSX.Element {
     router.push(HRIS_ROUTES.documents.base);
   };
 
+  const handleError = (error?: string) => {
+    toast({
+      intent: 'error',
+      label: 'company.documents.upload.error',
+      description: error,
+    });
+  };
+
   return (
     <div className="pt-4">
       <Form
@@ -109,6 +119,7 @@ export function AddFileForm({ categories, dateFormat }: Props): JSX.Element {
             expirationDate: '',
           },
         }}
+        onError={handleError}
         onSuccess={handleSuccess}
       >
         {(_, errors) => (

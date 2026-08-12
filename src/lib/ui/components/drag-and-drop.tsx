@@ -44,8 +44,14 @@ export function DragAndDrop<TData, TValidation, TForm>({
     if (state.status === 'success') {
       onSuccess?.();
       toast(EMPLOYEE_DOCUMENTS_TOASTS.UPLOAD);
+    } else if (state.status === 'error' || state.status === 'api-error') {
+      toast({
+        intent: 'error',
+        label: 'documents.upload.error',
+        description: 'error' in state ? state.error : undefined,
+      });
     }
-  }, [onSuccess, state.status, toast]);
+  }, [onSuccess, state, toast]);
 
   const handleUploadFiles = async (files: File[]) => {
     if (!files.length || !inputRef.current || !formRef.current) return;
@@ -60,7 +66,13 @@ export function DragAndDrop<TData, TValidation, TForm>({
   };
 
   const errorMessage =
-    state.status === 'validation-error' ? (Object.values(state?.errors ?? {})[0] as string[])[0] : null;
+    state.status === 'validation-error'
+      ? (Object.values(state?.errors ?? {})[0] as string[])[0]
+      : state.status === 'error' || state.status === 'api-error'
+        ? 'error' in state
+          ? state.error
+          : null
+        : null;
 
   return (
     <>
@@ -69,7 +81,14 @@ export function DragAndDrop<TData, TValidation, TForm>({
         <FormControl>
           {({ isSubmitting }) => (
             <>
-              <input className="hidden" name="document" readOnly={isSubmitting} ref={inputRef} type="file" />
+              <input
+                multiple
+                className="hidden"
+                name="document"
+                readOnly={isSubmitting}
+                ref={inputRef}
+                type="file"
+              />
               <DropZone
                 {...other}
                 className="min-h-96 w-full rounded border border-dashed border-transparent transition-colors data-[drop-target]:border-blue-800 data-[drop-target]:bg-blue-100"

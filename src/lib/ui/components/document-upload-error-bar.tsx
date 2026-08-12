@@ -29,7 +29,20 @@ export function DocumentUploadErrorBar<TForm, TData, TValidation>({
     };
   }, [formStatus]);
 
-  if (!show || formStatus.status !== 'validation-error' || !errorMessage) {
+  const isError =
+    formStatus.status === 'validation-error' ||
+    formStatus.status === 'error' ||
+    formStatus.status === 'api-error';
+
+  const displayMessage =
+    errorMessage ??
+    (formStatus.status === 'error' || formStatus.status === 'api-error'
+      ? 'error' in formStatus
+        ? formStatus.error
+        : 'Upload failed'
+      : null);
+
+  if (!show || !isError || !displayMessage) {
     return null;
   }
 
@@ -38,7 +51,7 @@ export function DocumentUploadErrorBar<TForm, TData, TValidation>({
       aria-live="assertive"
       className="my-2 flex w-full gap-x-2 rounded border border-warning px-4 py-2 text-warning"
     >
-      <Icon name="warning-full" /> {errorMessage}
+      <Icon name="warning-full" /> {displayMessage}
     </section>
   );
 }
