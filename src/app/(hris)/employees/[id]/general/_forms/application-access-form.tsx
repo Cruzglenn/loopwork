@@ -71,18 +71,13 @@ function IdentityForm({
     setGeneratedPassword(generated);
   };
 
-  const handleSaveClick = () => {
+  const submitForm = (notify: boolean) => {
     if (sendNotificationRef.current) {
-      sendNotificationRef.current.value = 'false';
+      sendNotificationRef.current.value = String(notify);
+      const form = sendNotificationRef.current.closest('form');
+      setSendNotification(notify);
+      form?.requestSubmit();
     }
-    setSendNotification(false);
-  };
-
-  const handleSaveAndNotifyClick = () => {
-    if (sendNotificationRef.current) {
-      sendNotificationRef.current.value = 'true';
-    }
-    setSendNotification(true);
   };
 
   return (
@@ -199,10 +194,8 @@ function IdentityForm({
                       intent="primary"
                       isDisabled={isSubmitting}
                       isLoading={isSubmitting && !sendNotification}
-                      name="sendNotification"
-                      type="submit"
-                      value="false"
-                      onClick={handleSaveClick}
+                      type="button"
+                      onClick={() => submitForm(false)}
                     >
                       {t('ctaLabels.save')}
                     </Button>
@@ -211,10 +204,8 @@ function IdentityForm({
                       intent="secondary"
                       isDisabled={isSubmitting}
                       isLoading={isSubmitting && sendNotification}
-                      name="sendNotification"
-                      type="submit"
-                      value="true"
-                      onClick={handleSaveAndNotifyClick}
+                      type="button"
+                      onClick={() => submitForm(true)}
                     >
                       {t('employees.generalView.saveAndNotify')}
                     </Button>
