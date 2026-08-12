@@ -42,6 +42,7 @@ export function payrollQueries(db: OrganizationPrismaClient): PayrollQueries {
             id: true,
             firstName: true,
             lastName: true,
+            workEmail: true,
             role: true,
             avatarId: true,
           },
