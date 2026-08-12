@@ -26,6 +26,9 @@ export function PayrollRunDetailsModal({ run, isOpen, onOpenChange, onOpenExport
   const [isPending, startTransition] = useTransition();
   const [sendingSlipId, setSendingSlipId] = useState<string | null>(null);
   const [isBatchSending, setIsBatchSending] = useState(false);
+  const [progress, setProgress] = useState<{ current: number; total: number; currentName: string } | null>(
+    null,
+  );
   const [payslips, setPayslips] = useState<PayslipDto[]>(run?.payslips || []);
 
   useEffect(() => {
@@ -36,22 +39,72 @@ export function PayrollRunDetailsModal({ run, isOpen, onOpenChange, onOpenExport
 
   if (!run) return null;
 
-  const handleResendEmails = () => {
+  const unsentCount = payslips.filter((s) => s.emailStatus !== 'SENT').length;
+  const totalCount = payslips.length;
+
+  const handleBatchResend = (forceAll: boolean = false) => {
+    const targets = forceAll ? payslips : payslips.filter((s) => s.emailStatus !== 'SENT');
+
+    if (targets.length === 0) {
+      toast({
+        intent: 'success',
+        label: 'All payslips in this run have already been emailed successfully!',
+      });
+      return;
+    }
+
     setIsBatchSending(true);
-    setPayslips((prev) => prev.map((s) => ({ ...s, emailStatus: 'PENDING' })));
+    let successCount = 0;
+    let failedCount = 0;
 
     startTransition(async () => {
       try {
-        const res = await resendPayrollRunEmailsAction(run.id);
-        if (res && 'error' in res) {
-          toast({ intent: 'error', label: 'Failed to dispatch batch payslip emails' });
-        } else {
-          toast({ intent: 'success', label: 'Batch payslip email sending started!' });
+        for (let i = 0; i < targets.length; i++) {
+          const slip = targets[i]!;
+          const empName = slip.employee ? `${slip.employee.firstName} ${slip.employee.lastName}` : 'Employee';
+
+          setProgress({ current: i + 1, total: targets.length, currentName: empName });
+
+          setPayslips((prev) =>
+            prev.map((s) => (s.id === slip.id ? { ...s, emailStatus: 'PENDING', emailError: null } : s)),
+          );
+
+          try {
+            const res = await sendSinglePayslipEmailAction(slip.id);
+            if (res && 'error' in res) {
+              failedCount++;
+              const errorMsg = typeof res.error === 'string' ? res.error : 'Failed to send email';
+              setPayslips((prev) =>
+                prev.map((s) =>
+                  s.id === slip.id ? { ...s, emailStatus: 'FAILED', emailError: errorMsg } : s,
+                ),
+              );
+            } else {
+              successCount++;
+              setPayslips((prev) =>
+                prev.map((s) =>
+                  s.id === slip.id
+                    ? { ...s, emailStatus: 'SENT', emailedAt: new Date(), emailError: null }
+                    : s,
+                ),
+              );
+            }
+          } catch (err) {
+            failedCount++;
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            setPayslips((prev) =>
+              prev.map((s) => (s.id === slip.id ? { ...s, emailStatus: 'FAILED', emailError: errorMsg } : s)),
+            );
+          }
         }
-      } catch {
-        toast({ intent: 'error', label: 'Error sending batch payslip emails' });
+
+        toast({
+          intent: failedCount > 0 ? 'error' : 'success',
+          label: `Batch email dispatch complete: ${successCount} SENT, ${failedCount} FAILED`,
+        });
       } finally {
         setIsBatchSending(false);
+        setProgress(null);
         router.refresh();
       }
     });
@@ -140,18 +193,38 @@ export function PayrollRunDetailsModal({ run, isOpen, onOpenChange, onOpenExport
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {run.status === 'PAID' && (
-              <Button
-                icon="refresh"
-                intent="secondary"
-                isDisabled={isPending || isBatchSending}
-                isLoading={isBatchSending}
-                size="sm"
-                onClick={handleResendEmails}
-              >
-                {isBatchSending ? 'Sending Batch...' : 'Resend Batch Emails'}
-              </Button>
+              <>
+                {/* Primary Smart Action: Send Remaining / Unsent Only */}
+                <Button
+                  icon="refresh"
+                  intent="secondary"
+                  isDisabled={isPending || isBatchSending}
+                  isLoading={isBatchSending}
+                  size="sm"
+                  onClick={() => handleBatchResend(false)}
+                >
+                  {isBatchSending
+                    ? 'Sending Batch...'
+                    : unsentCount > 0
+                      ? `Send Remaining Emails (${unsentCount})`
+                      : `Resend All Emails (${totalCount})`}
+                </Button>
+
+                {/* Secondary Action: Force Resend All */}
+                {unsentCount > 0 && unsentCount < totalCount && (
+                  <Button
+                    icon="refresh"
+                    intent="tertiary"
+                    isDisabled={isPending || isBatchSending}
+                    size="sm"
+                    onClick={() => handleBatchResend(true)}
+                  >
+                    Force Resend All ({totalCount})
+                  </Button>
+                )}
+              </>
             )}
             <Button
               icon="arrow-down"
@@ -187,9 +260,41 @@ export function PayrollRunDetailsModal({ run, isOpen, onOpenChange, onOpenExport
           </div>
         </div>
 
+        {/* Live Batch Dispatch Progress Tracker Banner */}
+        {progress && (
+          <div className="flex flex-col gap-2 rounded-xl border border-blue-200 bg-blue-50/80 p-4 shadow-sm">
+            <div className="flex items-center justify-between text-xs font-semibold text-blue-900">
+              <span>Sending Batch Payslip Emails...</span>
+              <span>
+                Step {progress.current} of {progress.total} (
+                {Math.round((progress.current / progress.total) * 100)}%)
+              </span>
+            </div>
+            {/* Animated Progress Bar */}
+            <div className="h-2 w-full overflow-hidden rounded-full bg-blue-200">
+              <div
+                className="h-full bg-blue-600 transition-all duration-300 ease-out"
+                style={{ width: `${Math.round((progress.current / progress.total) * 100)}%` }}
+              />
+            </div>
+            <div className="text-[11px] font-medium text-blue-700">
+              Currently sending to: <span className="font-bold text-blue-900">{progress.currentName}</span>
+            </div>
+          </div>
+        )}
+
         {/* Included Payslips Table */}
         <div className="flex flex-col gap-2">
-          <h4 className="text-sm font-semibold text-gray-800">Included Employee Payslips</h4>
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-gray-800">Included Employee Payslips</h4>
+            <span className="text-xs text-gray-500">
+              {unsentCount > 0 ? (
+                <span className="font-medium text-amber-700">{unsentCount} Unsent / Failed</span>
+              ) : (
+                <span className="font-medium text-green-700">All {totalCount} Emailed</span>
+              )}
+            </span>
+          </div>
           <div className="max-h-[340px] overflow-y-auto rounded-lg border border-gray-200">
             <table className="w-full text-left text-xs">
               <thead className="sticky top-0 border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
@@ -248,7 +353,7 @@ export function PayrollRunDetailsModal({ run, isOpen, onOpenChange, onOpenExport
                             aria-label="Send Payslip Email"
                             icon="refresh"
                             intent="tertiary"
-                            isDisabled={isPending || Boolean(sendingSlipId)}
+                            isDisabled={isPending || Boolean(sendingSlipId) || isBatchSending}
                             isLoading={isSendingThis}
                             size="sm"
                             title={isSendingThis ? 'Sending email...' : 'Send Payslip Email'}

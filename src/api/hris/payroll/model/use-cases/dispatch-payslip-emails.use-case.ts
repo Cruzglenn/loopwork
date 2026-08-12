@@ -9,12 +9,19 @@ export function dispatchPayslipEmailsUseCase(
   payrollRepository: PayrollRepository,
   emailSenderService: EmailSenderService,
 ) {
-  return async (run: PayrollRunDto, companyName: string = 'Loopwork Inc.'): Promise<void> => {
-    const payslips = run.payslips || [];
+  return async (
+    run: PayrollRunDto,
+    companyName: string = 'Loopwork Inc.',
+    onlyFailedOrUnsent: boolean = true,
+  ): Promise<void> => {
+    let payslips = run.payslips || [];
+    if (onlyFailedOrUnsent) {
+      payslips = payslips.filter((slip) => slip.emailStatus !== 'SENT');
+    }
     if (payslips.length === 0) return;
 
     logger.info(
-      `Starting automated payslip email dispatch for payroll run: ${run.name} (${payslips.length} slips)`,
+      `Starting automated payslip email dispatch for payroll run: ${run.name} (${payslips.length} slips, onlyFailedOrUnsent=${onlyFailedOrUnsent})`,
     );
 
     for (const slip of payslips) {

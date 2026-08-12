@@ -37,11 +37,17 @@ export function payrollController(organization: OrganizationContext) {
     return markPayrollRunPaidUseCase(repository, emailService)(runId);
   };
 
-  const resendPayrollRunEmails = async (_checker: PermissionChecker, runId: CUID) => {
+  const resendPayrollRunEmails = async (
+    _checker: PermissionChecker,
+    runId: CUID,
+    onlyFailedOrUnsent: boolean = true,
+  ) => {
     const run = await repository.findPayrollRunById(runId);
     if (!run) throw new Error('Payroll run not found');
     const emailService = await emailSenderService();
-    dispatchPayslipEmailsUseCase(repository, emailService)(run).catch(() => {});
+    dispatchPayslipEmailsUseCase(repository, emailService)(run, 'Loopwork Inc.', onlyFailedOrUnsent).catch(
+      () => {},
+    );
     return { success: true };
   };
 

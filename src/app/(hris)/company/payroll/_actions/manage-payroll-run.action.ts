@@ -24,9 +24,9 @@ export async function markPayrollRunPaidAction(runId: CUID) {
   }
 }
 
-export async function resendPayrollRunEmailsAction(runId: CUID) {
+export async function resendPayrollRunEmailsAction(runId: CUID, onlyFailedOrUnsent: boolean = true) {
   try {
-    await hrisApi.payroll.resendPayrollRunEmails(runId);
+    await hrisApi.payroll.resendPayrollRunEmails(runId, onlyFailedOrUnsent);
     revalidatePath(HRIS_ROUTES.company.payroll.base);
     return { success: true };
   } catch (err) {
