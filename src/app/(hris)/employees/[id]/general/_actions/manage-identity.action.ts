@@ -75,97 +75,31 @@ export async function createIdentityAction(
 
   const targetEmail = validation.data.email.trim().toLowerCase();
 
-  // If sending notification, create/update identity with email invitation
-  if (sendNotification) {
-    try {
-      const api = hrisApi;
-      const employeeId = formData.get('employeeId') as CUID;
-
-      const allRoles = await api.authorization.roles.getAllRoles();
-      const roleKey = await getRoleKey(validation.data.roleKey, allRoles);
-
-      let identityId: string;
-      const existingIdentity = await api.auth.getIdentityByEmail(targetEmail);
-
-      let tempPassword: string;
-      if (
-        validation.data.password &&
-        validation.data.confirmPassword &&
-        validation.data.password === validation.data.confirmPassword &&
-        validation.data.password.length >= 8
-      ) {
-        tempPassword = validation.data.password;
-      } else {
-        tempPassword = StringTools.createRandomString(12);
-      }
-
-      if (existingIdentity) {
-        identityId = existingIdentity.id;
-        await api.auth.updateIdentity(identityId, { password: tempPassword, email: targetEmail });
-        if (roleKey) {
-          const currentRoles = await api.authorization.roles.getRolesForIdentity(identityId);
-          const roleToAssign = allRoles.find((r) => r.key === roleKey);
-          if (roleToAssign && !currentRoles.some((r) => r.id === roleToAssign.id)) {
-            for (const role of currentRoles) {
-              if (!role.isSystem) {
-                await api.authorization.roles.removeRoleFromIdentity(identityId, role.id);
-              }
-            }
-            await api.authorization.roles.assignRoleToIdentity(identityId, roleToAssign.id);
-          }
-        }
-        await sendInviteService().sendInvite({ email: targetEmail, tempPassword });
-      } else {
-        identityId = await api.auth.createIdentity(targetEmail, roleKey);
-        if (
-          validation.data.password &&
-          validation.data.confirmPassword &&
-          validation.data.password === validation.data.confirmPassword &&
-          validation.data.password.length >= 8
-        ) {
-          await api.auth.updateIdentity(identityId, { password: tempPassword });
-        }
-      }
-
-      await updateEmployeeStatusIfNeeded(api, employeeId);
-      await api.employees.updateEmployeeGeneralInfo(employeeId, { identityId, workEmail: targetEmail });
-
-      revalidatePath(HRIS_ROUTES.employees.general.base(employeeId));
-
-      return {
-        ...prevState,
-        status: 'success',
-        form,
-        data: undefined,
-      };
-    } catch (err) {
-      return { ...prevState, form, ...handleActionError(err) };
-    }
-  }
-
-  // Manual creation without email notification (requires password >= 8 characters)
-  if (!form.password || form.password.length < 8) {
-    return {
-      ...prevState,
-      form,
-      status: 'validation-error',
-      errors: { password: ['Password must be at least 8 characters'] },
-    };
-  }
-
   try {
     const api = hrisApi;
     const employeeId = formData.get('employeeId') as CUID;
-
     const allRoles = await api.authorization.roles.getAllRoles();
     const roleKey = await getRoleKey(validation.data.roleKey, allRoles);
+
+    // Single password to use for both database and email
+    let passwordToUse: string;
+    if (
+      validation.data.password &&
+      validation.data.confirmPassword &&
+      validation.data.password === validation.data.confirmPassword &&
+      validation.data.password.length >= 8
+    ) {
+      passwordToUse = validation.data.password;
+    } else {
+      passwordToUse = StringTools.createRandomString(12);
+    }
 
     let identityId: string;
     const existingIdentity = await api.auth.getIdentityByEmail(targetEmail);
 
     if (existingIdentity) {
       identityId = existingIdentity.id;
-      await api.auth.updateIdentity(identityId, { password: form.password, email: targetEmail });
+      await api.auth.updateIdentity(identityId, { password: passwordToUse, email: targetEmail });
       if (roleKey) {
         const currentRoles = await api.authorization.roles.getRolesForIdentity(identityId);
         const roleToAssign = allRoles.find((r) => r.key === roleKey);
@@ -179,7 +113,11 @@ export async function createIdentityAction(
         }
       }
     } else {
-      identityId = await api.auth.createIdentityManually(targetEmail, form.password, roleKey);
+      identityId = await api.auth.createIdentityManually(targetEmail, passwordToUse, roleKey);
+    }
+
+    if (sendNotification) {
+      await sendInviteService().sendInvite({ email: targetEmail, tempPassword: passwordToUse });
     }
 
     await updateEmployeeStatusIfNeeded(api, employeeId);

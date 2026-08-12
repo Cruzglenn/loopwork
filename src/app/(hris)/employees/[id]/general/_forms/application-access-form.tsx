@@ -199,8 +199,9 @@ function IdentityForm({
                       intent="primary"
                       isDisabled={isSubmitting}
                       isLoading={isSubmitting && !sendNotification}
-                      name="save"
+                      name="sendNotification"
                       type="submit"
+                      value="false"
                       onClick={handleSaveClick}
                     >
                       {t('ctaLabels.save')}
@@ -210,8 +211,9 @@ function IdentityForm({
                       intent="secondary"
                       isDisabled={isSubmitting}
                       isLoading={isSubmitting && sendNotification}
-                      name="saveAndNotify"
+                      name="sendNotification"
                       type="submit"
+                      value="true"
                       onClick={handleSaveAndNotifyClick}
                     >
                       {t('employees.generalView.saveAndNotify')}
