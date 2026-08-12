@@ -97,7 +97,7 @@ function IdentityForm({
           <>
             <input name="employeeId" type="hidden" value={employeeId} />
             {isUpdate && <input name="identityId" type="hidden" value={identityId} />}
-            <input name="sendNotification" ref={sendNotificationRef} type="hidden" value="false" />
+            <input defaultValue="false" name="sendNotification" ref={sendNotificationRef} type="hidden" />
 
             <FormControl errors={formErrors} name="email">
               {(formState) => (
