@@ -7,7 +7,11 @@ import { type IdentityWithRoles, UserIdentityEntity } from '@/api/hris/authentic
 export function identityRepository(db: OrganizationPrismaClient): IdentityRepository {
   return {
     createIdentity: async (identityDto: IdentityDto): Promise<CUID> => {
-      const identity = await db.identity.create({ data: identityDto });
+      const normalizedDto = {
+        ...identityDto,
+        email: identityDto.email.trim().toLowerCase(),
+      };
+      const identity = await db.identity.create({ data: normalizedDto });
 
       return identity.id;
     },
@@ -19,8 +23,9 @@ export function identityRepository(db: OrganizationPrismaClient): IdentityReposi
       await db.identity.delete({ where: { id } });
     },
     findIdentityByEmail: async (email: string): Promise<UserIdentityEntity | null> => {
+      const normalizedEmail = email.trim().toLowerCase();
       const identity = await db.identity.findFirst({
-        where: { email },
+        where: { email: normalizedEmail },
         include: {
           identityRole: {
             include: {
@@ -67,7 +72,7 @@ export function identityRepository(db: OrganizationPrismaClient): IdentityReposi
     updateIdentityEmail: async (id: CUID, email: string): Promise<void> => {
       await db.identity.update({
         where: { id },
-        data: { email },
+        data: { email: email.trim().toLowerCase() },
       });
     },
     updateIdentityPassword: async (id: CUID, password: string): Promise<void> => {

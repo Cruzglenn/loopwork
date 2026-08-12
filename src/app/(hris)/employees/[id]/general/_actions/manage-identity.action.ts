@@ -53,8 +53,11 @@ export async function createIdentityAction(
   const sendNotification =
     formData.get('sendNotification') === 'true' || formData.get('saveAndNotify') !== null;
   const rawRoleKey = formData.get('roleKey') as string;
+  const rawEmail = (formData.get('email') as string) || '';
+  const normalizedEmail = rawEmail.trim().toLowerCase();
+
   const form: CreateIdentityForm = {
-    email: formData.get('email') as string,
+    email: normalizedEmail,
     password: (formData.get('password') as string) || undefined,
     confirmPassword: (formData.get('confirmPassword') as string) || undefined,
     roleKey: rawRoleKey && rawRoleKey.trim() !== '' ? rawRoleKey : '',
@@ -70,7 +73,9 @@ export async function createIdentityAction(
     };
   }
 
-  // If sending notification, create identity with email invitation
+  const targetEmail = validation.data.email.trim().toLowerCase();
+
+  // If sending notification, create/update identity with email invitation
   if (sendNotification) {
     try {
       const api = hrisApi;
@@ -80,12 +85,23 @@ export async function createIdentityAction(
       const roleKey = await getRoleKey(validation.data.roleKey, allRoles);
 
       let identityId: string;
-      const existingIdentity = await api.auth.getIdentityByEmail(validation.data.email);
+      const existingIdentity = await api.auth.getIdentityByEmail(targetEmail);
+
+      let tempPassword: string;
+      if (
+        validation.data.password &&
+        validation.data.confirmPassword &&
+        validation.data.password === validation.data.confirmPassword &&
+        validation.data.password.length >= 8
+      ) {
+        tempPassword = validation.data.password;
+      } else {
+        tempPassword = StringTools.createRandomString(12);
+      }
 
       if (existingIdentity) {
         identityId = existingIdentity.id;
-        const tempPassword = StringTools.createRandomString(12);
-        await api.auth.updateIdentity(identityId, { password: tempPassword });
+        await api.auth.updateIdentity(identityId, { password: tempPassword, email: targetEmail });
         if (roleKey) {
           const currentRoles = await api.authorization.roles.getRolesForIdentity(identityId);
           const roleToAssign = allRoles.find((r) => r.key === roleKey);
@@ -98,13 +114,15 @@ export async function createIdentityAction(
             await api.authorization.roles.assignRoleToIdentity(identityId, roleToAssign.id);
           }
         }
-        await sendInviteService().sendInvite({ email: validation.data.email, tempPassword });
       } else {
-        identityId = await api.auth.createIdentity(validation.data.email, roleKey);
+        identityId = await api.auth.createIdentity(targetEmail, roleKey);
+        await api.auth.updateIdentity(identityId, { password: tempPassword });
       }
 
+      await sendInviteService().sendInvite({ email: targetEmail, tempPassword });
+
       await updateEmployeeStatusIfNeeded(api, employeeId);
-      await api.employees.updateEmployeeGeneralInfo(employeeId, { identityId });
+      await api.employees.updateEmployeeGeneralInfo(employeeId, { identityId, workEmail: targetEmail });
 
       revalidatePath(HRIS_ROUTES.employees.general.base(employeeId));
 
@@ -119,7 +137,7 @@ export async function createIdentityAction(
     }
   }
 
-  // Manual creation with password (requires password >= 8 characters)
+  // Manual creation without email notification (requires password >= 8 characters)
   if (!form.password || form.password.length < 8) {
     return {
       ...prevState,
@@ -137,11 +155,11 @@ export async function createIdentityAction(
     const roleKey = await getRoleKey(validation.data.roleKey, allRoles);
 
     let identityId: string;
-    const existingIdentity = await api.auth.getIdentityByEmail(validation.data.email);
+    const existingIdentity = await api.auth.getIdentityByEmail(targetEmail);
 
     if (existingIdentity) {
       identityId = existingIdentity.id;
-      await api.auth.updateIdentity(identityId, { password: form.password });
+      await api.auth.updateIdentity(identityId, { password: form.password, email: targetEmail });
       if (roleKey) {
         const currentRoles = await api.authorization.roles.getRolesForIdentity(identityId);
         const roleToAssign = allRoles.find((r) => r.key === roleKey);
@@ -155,11 +173,11 @@ export async function createIdentityAction(
         }
       }
     } else {
-      identityId = await api.auth.createIdentityManually(validation.data.email, form.password, roleKey);
+      identityId = await api.auth.createIdentityManually(targetEmail, form.password, roleKey);
     }
 
     await updateEmployeeStatusIfNeeded(api, employeeId);
-    await api.employees.updateEmployeeGeneralInfo(employeeId, { identityId });
+    await api.employees.updateEmployeeGeneralInfo(employeeId, { identityId, workEmail: targetEmail });
 
     revalidatePath(HRIS_ROUTES.employees.general.base(employeeId));
 
@@ -181,32 +199,32 @@ export async function updateIdentityAction(
   const sendNotification =
     formData.get('sendNotification') === 'true' || formData.get('saveAndNotify') !== null;
   const rawRoleKey = formData.get('roleKey') as string;
+  const rawEmail = (formData.get('email') as string) || '';
+  const normalizedEmail = rawEmail.trim().toLowerCase();
+
   const form: UpdateIdentityForm = {
-    email: (formData.get('email') as string) || undefined,
+    email: normalizedEmail || undefined,
     password: (formData.get('password') as string) || undefined,
     confirmPassword: (formData.get('confirmPassword') as string) || undefined,
     roleKey: rawRoleKey && rawRoleKey.trim() !== '' ? rawRoleKey : undefined,
   };
 
-  // Validate passwords if provided
-  if (form.password || form.confirmPassword) {
-    const passwordValidation = z
-      .object({
-        password: z.string().min(8),
-        confirmPassword: z.string().min(8),
-      })
-      .refine((data) => data.password === data.confirmPassword, {
-        message: 'Passwords do not match',
-        path: ['confirmPassword'],
-      })
-      .safeParse({ password: form.password || '', confirmPassword: form.confirmPassword || '' });
-
-    if (!passwordValidation.success) {
+  // Validate passwords if provided AND not sending email notification
+  if (!sendNotification && (form.password || form.confirmPassword)) {
+    if (!form.password || form.password.length < 8) {
       return {
         ...prevState,
         form,
         status: 'validation-error',
-        errors: passwordValidation.error.flatten().fieldErrors,
+        errors: { password: ['Password must be at least 8 characters'] },
+      };
+    }
+    if (form.password !== form.confirmPassword) {
+      return {
+        ...prevState,
+        form,
+        status: 'validation-error',
+        errors: { confirmPassword: ['Passwords do not match'] },
       };
     }
   }
@@ -234,26 +252,40 @@ export async function updateIdentityAction(
       return { ...prevState, ...handleActionError(new Error('Identity not found')) };
     }
 
-    const targetEmail = form.email && form.email.trim() !== '' ? form.email : currentIdentity.email;
+    const currentEmailNormalized = currentIdentity.email.trim().toLowerCase();
+    const targetEmail =
+      form.email && form.email.trim() !== '' ? form.email.trim().toLowerCase() : currentEmailNormalized;
     const updates: { email?: string; password?: string } = {};
 
     // Only update email if provided and different from current email
-    if (form.email && form.email.trim() !== '' && form.email !== currentIdentity.email) {
-      updates.email = form.email;
+    if (targetEmail !== currentEmailNormalized) {
+      updates.email = targetEmail;
       if (employeeId) {
-        await api.employees.updateEmployeeGeneralInfo(employeeId, { workEmail: form.email });
+        await api.employees.updateEmployeeGeneralInfo(employeeId, { workEmail: targetEmail });
       }
     }
 
-    let tempPassword = form.password;
+    let tempPassword: string | undefined;
 
-    // If sendNotification is true, ensure password exists or generate one and dispatch email
+    // If sendNotification is true, use valid custom password if provided, or generate a random temporary one
     if (sendNotification) {
-      if (!tempPassword || tempPassword.trim() === '') {
+      if (
+        form.password &&
+        form.confirmPassword &&
+        form.password === form.confirmPassword &&
+        form.password.length >= 8
+      ) {
+        tempPassword = form.password;
+      } else {
         tempPassword = StringTools.createRandomString(12);
       }
       updates.password = tempPassword;
-    } else if (form.password && form.password.trim() !== '') {
+    } else if (
+      form.password &&
+      form.confirmPassword &&
+      form.password === form.confirmPassword &&
+      form.password.length >= 8
+    ) {
       updates.password = form.password;
     }
 

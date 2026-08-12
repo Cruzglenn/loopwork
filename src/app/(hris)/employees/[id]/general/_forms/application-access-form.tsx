@@ -48,7 +48,9 @@ function IdentityForm({
 
   const isUpdate = !!identityId;
   const currentRole = isUpdate ? availableRoles.find((r) => identityRoles.includes(r.key)) : null;
-  const [selectedRoleId, setSelectedRoleId] = useState<string | null>(currentRole?.id || null);
+  const [selectedRoleId, setSelectedRoleId] = useState<string | null>(
+    currentRole?.id || (availableRoles.length > 0 ? availableRoles[0].id : null),
+  );
 
   const handleSuccess = () => {
     pushToast(isUpdate ? EMPLOYEE_GENERAL_TOASTS.IDENTITY_UPDATE : EMPLOYEE_GENERAL_TOASTS.IDENTITY_CREATE);
