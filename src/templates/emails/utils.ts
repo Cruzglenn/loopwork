@@ -54,7 +54,7 @@ export function templateHtml(
     }
 
     badgeHtml = `
-      <div style="display: inline-block; margin-bottom: 20px; padding: 6px 14px; background-color: ${bg}; border: 1px solid ${borderCol}; border-radius: 9999px; color: ${textCol}; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">
+      <div style="display: inline-block; margin-bottom: 20px; padding: 6px 14px; background-color: ${bg}; border: 1px solid ${borderCol}; border-radius: 0px; color: ${textCol}; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
         ${badge.text}
       </div>`;
   }
@@ -64,25 +64,27 @@ export function templateHtml(
     const rows = details
       .map(
         (d, idx) => `
-      <tr>
-        <td style="padding: 12px 16px; font-size: 13px; font-weight: 600; color: #64748b; ${idx < details.length - 1 ? 'border-bottom: 1px solid #e2e8f0;' : ''} width: 45%;" class="detail-label">${d.label}</td>
-        <td style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #0f172a; ${idx < details.length - 1 ? 'border-bottom: 1px solid #e2e8f0;' : ''} text-align: right;" class="detail-val">${d.value}</td>
+      <tr class="detail-row">
+        <td style="padding: 14px 16px; font-size: 13px; font-weight: 600; color: #64748b; ${idx < details.length - 1 ? 'border-bottom: 1px solid #e2e8f0;' : ''} width: 40%; vertical-align: middle; box-sizing: border-box;" class="detail-label">${d.label}</td>
+        <td style="padding: 14px 16px; font-size: 14px; font-weight: 700; color: #0f172a; ${idx < details.length - 1 ? 'border-bottom: 1px solid #e2e8f0;' : ''} text-align: right; word-break: break-all; vertical-align: middle; box-sizing: border-box;" class="detail-val">${d.value}</td>
       </tr>`,
       )
       .join('');
 
     detailsHtml = `
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 24px; margin-bottom: 8px; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; border-collapse: separate; border-spacing: 0; overflow: hidden;" class="detail-box">
-        ${rows}
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 24px; margin-bottom: 12px; background-color: #f8fafc; border-radius: 0px; border: 1px solid #cbd5e1; border-collapse: separate; border-spacing: 0; table-layout: fixed; width: 100%; box-sizing: border-box;" class="detail-box">
+        <tbody>
+          ${rows}
+        </tbody>
       </table>`;
   }
 
   const subheadingHtml = subheading
-    ? `<p style="margin: 0 0 16px 0; font-size: 15px; color: #64748b; line-height: 1.5;" class="email-muted">${subheading}</p>`
+    ? `<p style="margin: 0 0 16px 0; font-size: 15px; color: #475569; line-height: 1.6;" class="email-muted">${subheading}</p>`
     : '';
 
   const contentHtml = content
-    ? `<div style="font-size: 15px; line-height: 1.6; color: #475569;" class="email-text">${content}</div>`
+    ? `<div style="font-size: 15px; line-height: 1.6; color: #334155;" class="email-text">${content}</div>`
     : '';
 
   const ctaHtml = cta
@@ -90,7 +92,7 @@ export function templateHtml(
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 28px;">
       <tr>
         <td align="center">
-          <a href="${cta.href}" target="_blank" style="display: inline-block; background-color: #2563eb; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 8px; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);">
+          <a href="${cta.href}" target="_blank" style="display: inline-block; background-color: #0A11EB; color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 0px; letter-spacing: 0.3px; border: none;" class="cta-btn">
             ${cta.label}
           </a>
         </td>
@@ -115,6 +117,16 @@ export function templateHtml(
     table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
 
+    @media only screen and (max-width: 600px) {
+      .email-container { width: 100% !important; padding: 16px 8px !important; }
+      .email-card { padding: 24px 16px !important; border-radius: 0px !important; }
+      .detail-box { width: 100% !important; table-layout: auto !important; }
+      .detail-row { display: block !important; width: 100% !important; }
+      .detail-label { display: block !important; width: 100% !important; text-align: left !important; padding: 10px 12px 2px 12px !important; border-bottom: none !important; font-size: 12px !important; }
+      .detail-val { display: block !important; width: 100% !important; text-align: left !important; padding: 2px 12px 12px 12px !important; font-size: 14px !important; word-break: break-all !important; }
+      .cta-btn { display: block !important; width: 100% !important; box-sizing: border-box !important; text-align: center !important; padding: 14px 16px !important; }
+    }
+
     @media (prefers-color-scheme: dark) {
       .email-bg { background-color: #0f172a !important; }
       .email-card { background-color: #1e293b !important; border-color: #334155 !important; }
@@ -131,28 +143,31 @@ export function templateHtml(
 <body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;" class="email-bg">
   <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f1f5f9; table-layout: fixed;" class="email-bg">
     <tr>
-      <td align="center" style="padding: 40px 16px;">
+      <td align="center" style="padding: 32px 12px;" class="email-container">
         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 560px; margin: 0 auto;">
           <!-- Header Logo -->
           <tr>
             <td align="center" style="padding-bottom: 24px;">
               <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td align="center">
-                    <span style="font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;" class="email-title">
-                      Loop<span style="color: #2563eb;">work</span>
+                  <td valign="middle" style="padding-right: 12px;">
+                    <img src="https://eurielleivy.site/images/logo-icon-128.png" alt="Loopwork" width="38" height="38" style="display: block; width: 38px; height: 38px; border: 0;" />
+                  </td>
+                  <td valign="middle">
+                    <span style="font-size: 24px; font-weight: 900; color: #040760; letter-spacing: -0.5px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;" class="email-title">
+                      Loop<span style="color: #0A11EB;">work</span>
                     </span>
-                    <span style="display: inline-block; margin-left: 8px; padding: 3px 8px; background-color: #e0e7ff; color: #3730a3; font-size: 11px; font-weight: 700; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px; vertical-align: middle;">HRIS</span>
+                    <span style="display: inline-block; margin-left: 8px; padding: 3px 8px; background-color: #0A11EB; color: #ffffff; font-size: 10px; font-weight: 800; border-radius: 0px; text-transform: uppercase; letter-spacing: 1px; vertical-align: middle;">HRIS</span>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
-          <!-- Main Card -->
+          <!-- Main Card (Sharp Corners) -->
           <tr>
-            <td style="background-color: #ffffff; border-radius: 16px; padding: 36px 32px; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04); border: 1px solid #e2e8f0;" class="email-card">
+            <td style="background-color: #ffffff; border-radius: 0px; padding: 36px 32px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06); border: 1px solid #cbd5e1;" class="email-card">
               ${badgeHtml}
-              <h1 style="margin: 0 0 12px 0; font-size: 22px; font-weight: 700; color: #0f172a; line-height: 1.3;" class="email-title">
+              <h1 style="margin: 0 0 14px 0; font-size: 22px; font-weight: 800; color: #0f172a; line-height: 1.3;" class="email-title">
                 ${heading}
               </h1>
               ${subheadingHtml}
@@ -163,7 +178,7 @@ export function templateHtml(
           </tr>
           <!-- Footer -->
           <tr>
-            <td align="center" style="padding-top: 28px; font-size: 12px; color: #64748b; line-height: 1.6;" class="email-footer">
+            <td align="center" style="padding-top: 24px; font-size: 12px; color: #64748b; line-height: 1.6;" class="email-footer">
               <p style="margin: 0;">This notification was sent automatically by <strong>Loopwork HRIS</strong>.</p>
               <p style="margin: 4px 0 0 0;" class="email-muted">© ${new Date().getFullYear()} Loopwork. All rights reserved.</p>
             </td>

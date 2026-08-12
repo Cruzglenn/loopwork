@@ -2,7 +2,11 @@
  * Get the base application URL from environment variable
  */
 export function getAppUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const url = process.env.NEXT_PUBLIC_APP_URL || 'https://eurielleivy.site';
+  if (url.includes('vercel.app')) {
+    return 'https://eurielleivy.site';
+  }
+  return url;
 }
 
 /**

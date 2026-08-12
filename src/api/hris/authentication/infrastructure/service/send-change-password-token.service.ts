@@ -25,7 +25,7 @@ export function sendChangePasswordTokenService(): ChangePasswordMessageSender {
       }
 
       if (baseUrl.includes('vercel.app')) {
-        baseUrl = 'https://www.eurielleivy.site';
+        baseUrl = 'https://eurielleivy.site';
       }
 
       const appUrl = baseUrl.replace(/\/+$/, '');
