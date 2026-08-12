@@ -1,10 +1,12 @@
 'use client';
 
+import { useTransition } from 'react';
 import Link from 'next/link';
 import { type PayrollRunDto } from '@/api/hris/payroll/model/dtos';
 import { Button, Chip, Modal } from '@/lib/ui';
 import { ModalHeader } from '@/lib/ui/components/modal/modal-header';
 import { API_ROUTES, parseDate } from '@/shared';
+import { resendPayrollRunEmailsAction } from '../_actions/manage-payroll-run.action';
 
 type Props = {
   run: PayrollRunDto | null;
@@ -14,7 +16,15 @@ type Props = {
 };
 
 export function PayrollRunDetailsModal({ run, isOpen, onOpenChange, onOpenExport }: Props) {
+  const [isPending, startTransition] = useTransition();
+
   if (!run) return null;
+
+  const handleResendEmails = () => {
+    startTransition(async () => {
+      await resendPayrollRunEmailsAction(run.id);
+    });
+  };
 
   const getStatusChip = (status: string) => {
     switch (status) {
@@ -27,6 +37,24 @@ export function PayrollRunDetailsModal({ run, isOpen, onOpenChange, onOpenExport
       case 'DRAFT':
       default:
         return <Chip intent="warning">DRAFT</Chip>;
+    }
+  };
+
+  const getEmailStatusChip = (emailStatus?: string, error?: string | null) => {
+    switch (emailStatus) {
+      case 'SENT':
+        return <Chip intent="ok">SENT</Chip>;
+      case 'PENDING':
+        return <Chip intent="warning">SENDING...</Chip>;
+      case 'FAILED':
+        return (
+          <span title={error || 'Failed to send email'}>
+            <Chip intent="critical">FAILED</Chip>
+          </span>
+        );
+      case 'NOT_SENT':
+      default:
+        return <Chip intent="warning">NOT SENT</Chip>;
     }
   };
 
@@ -44,17 +72,31 @@ export function PayrollRunDetailsModal({ run, isOpen, onOpenChange, onOpenExport
               {parseDate(run.periodEnd, 'MMM DD, YYYY')}
             </span>
           </div>
-          <Button
-            icon="arrow-down"
-            intent="tertiary"
-            size="sm"
-            onClick={() => {
-              onOpenChange(false);
-              onOpenExport(run);
-            }}
-          >
-            Export Financial Reports
-          </Button>
+
+          <div className="flex items-center gap-2">
+            {run.status === 'PAID' && (
+              <Button
+                icon="refresh"
+                intent="secondary"
+                isDisabled={isPending}
+                size="sm"
+                onClick={handleResendEmails}
+              >
+                {isPending ? 'Sending...' : 'Resend Payslips'}
+              </Button>
+            )}
+            <Button
+              icon="arrow-down"
+              intent="tertiary"
+              size="sm"
+              onClick={() => {
+                onOpenChange(false);
+                onOpenExport(run);
+              }}
+            >
+              Export Reports
+            </Button>
+          </div>
         </div>
 
         {/* Financial Summary Cards */}
@@ -88,6 +130,7 @@ export function PayrollRunDetailsModal({ run, isOpen, onOpenChange, onOpenExport
                   <th className="p-2.5 text-right">Gross</th>
                   <th className="p-2.5 text-right">Deductions</th>
                   <th className="p-2.5 text-right">Net Pay</th>
+                  <th className="p-2.5 text-center">Email Status</th>
                   <th className="p-2.5 text-right">PDF</th>
                 </tr>
               </thead>
@@ -95,7 +138,12 @@ export function PayrollRunDetailsModal({ run, isOpen, onOpenChange, onOpenExport
                 {(run.payslips || []).map((slip) => (
                   <tr key={slip.id} className="hover:bg-gray-50/80">
                     <td className="p-2.5 font-medium text-gray-900">
-                      {slip.employee ? `${slip.employee.firstName} ${slip.employee.lastName}` : 'Employee'}
+                      <div>
+                        {slip.employee ? `${slip.employee.firstName} ${slip.employee.lastName}` : 'Employee'}
+                      </div>
+                      {slip.employee?.workEmail && (
+                        <div className="text-[10px] font-normal text-gray-400">{slip.employee.workEmail}</div>
+                      )}
                     </td>
                     <td className="p-2.5 text-right">₱{slip.grossPay.toLocaleString()}</td>
                     <td className="p-2.5 text-right text-red-600">
@@ -103,6 +151,9 @@ export function PayrollRunDetailsModal({ run, isOpen, onOpenChange, onOpenExport
                     </td>
                     <td className="p-2.5 text-right font-bold text-green-600">
                       ₱{slip.netPay.toLocaleString()}
+                    </td>
+                    <td className="p-2.5 text-center">
+                      {getEmailStatusChip(slip.emailStatus, slip.emailError)}
                     </td>
                     <td className="p-2.5 text-right">
                       <Link href={API_ROUTES.downloadPayslip(slip.id)} target="_blank">

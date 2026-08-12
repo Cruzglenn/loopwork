@@ -107,6 +107,7 @@ export function payrollRepository(db: OrganizationPrismaClient): PayrollReposito
                 id: true,
                 firstName: true,
                 lastName: true,
+                workEmail: true,
                 role: true,
                 avatarId: true,
               },
@@ -130,6 +131,7 @@ export function payrollRepository(db: OrganizationPrismaClient): PayrollReposito
                 id: true,
                 firstName: true,
                 lastName: true,
+                workEmail: true,
                 role: true,
                 avatarId: true,
               },
@@ -220,6 +222,36 @@ export function payrollRepository(db: OrganizationPrismaClient): PayrollReposito
     return updated as unknown as PayslipDto;
   };
 
+  const updatePayslipEmailStatus = async (
+    id: CUID,
+    emailStatus: 'NOT_SENT' | 'PENDING' | 'SENT' | 'FAILED',
+    emailedAt?: Date | null,
+    emailError?: string | null,
+  ): Promise<PayslipDto> => {
+    const updated = await db.payslip.update({
+      where: { id },
+      data: {
+        emailStatus,
+        ...(emailedAt !== undefined && { emailedAt }),
+        ...(emailError !== undefined && { emailError }),
+      },
+      include: {
+        items: true,
+        employee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            workEmail: true,
+            role: true,
+            avatarId: true,
+          },
+        },
+      },
+    });
+    return updated as unknown as PayslipDto;
+  };
+
   const findPayslipById = async (id: CUID): Promise<PayslipDto | null> => {
     const payslip = await db.payslip.findUnique({
       where: { id },
@@ -265,6 +297,7 @@ export function payrollRepository(db: OrganizationPrismaClient): PayrollReposito
     getAllPayrollRuns,
     createPayslip,
     updatePayslipStatus,
+    updatePayslipEmailStatus,
     findPayslipById,
     findPayslipsByEmployeeId,
     deletePayslip,

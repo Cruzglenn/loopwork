@@ -23,3 +23,13 @@ export async function markPayrollRunPaidAction(runId: CUID) {
     return handleActionError(err);
   }
 }
+
+export async function resendPayrollRunEmailsAction(runId: CUID) {
+  try {
+    await hrisApi.payroll.resendPayrollRunEmails(runId);
+    revalidatePath(HRIS_ROUTES.company.payroll.base);
+    return { success: true };
+  } catch (err) {
+    return handleActionError(err);
+  }
+}

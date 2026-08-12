@@ -49,6 +49,12 @@ export type PayrollRepository = {
   }) => Promise<PayslipDto>;
 
   updatePayslipStatus: (id: CUID, status: PayrollStatusDto, paidAt?: Date) => Promise<PayslipDto>;
+  updatePayslipEmailStatus: (
+    id: CUID,
+    emailStatus: 'NOT_SENT' | 'PENDING' | 'SENT' | 'FAILED',
+    emailedAt?: Date | null,
+    emailError?: string | null,
+  ) => Promise<PayslipDto>;
   findPayslipById: (id: CUID) => Promise<PayslipDto | null>;
   findPayslipsByEmployeeId: (employeeId: CUID) => Promise<PayslipDto[]>;
   deletePayslip: (id: CUID) => Promise<void>;

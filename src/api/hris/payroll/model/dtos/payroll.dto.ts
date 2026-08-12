@@ -26,6 +26,8 @@ export type PayslipItemDto = {
   updatedAt: Date;
 };
 
+export type PayslipEmailStatusDto = 'NOT_SENT' | 'PENDING' | 'SENT' | 'FAILED';
+
 export type PayslipDto = {
   id: CUID;
   payrollRunId?: CUID | null;
@@ -39,6 +41,9 @@ export type PayslipDto = {
   grossPay: number;
   netPay: number;
   status: PayrollStatusDto;
+  emailStatus?: PayslipEmailStatusDto;
+  emailedAt?: Date | null;
+  emailError?: string | null;
   paidAt: Date | null;
   notes: string | null;
   createdAt: Date;
@@ -48,6 +53,7 @@ export type PayslipDto = {
     id: CUID;
     firstName: string;
     lastName: string;
+    workEmail?: string;
     role: string | null;
     avatarId: string | null;
   };

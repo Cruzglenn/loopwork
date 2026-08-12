@@ -2,6 +2,7 @@ import { type OrganizationContext } from '@/api/hris';
 import { requirePermission, privateRoute, type PermissionChecker } from '@/api/hris/authorization';
 import { ResourceType, PermissionAction } from '@/api/hris/authorization/permissions';
 import { type CUID } from '@/shared';
+import { emailSenderService } from '@/api/hris/acl/email-service.acl';
 import { payrollRepository } from '../database/repositories/payroll.repository';
 import { payrollQueries } from '../database/queries/payroll.queries';
 import {
@@ -15,6 +16,7 @@ import {
   updatePayslipStatusUseCase,
   approvePayrollRunUseCase,
   markPayrollRunPaidUseCase,
+  dispatchPayslipEmailsUseCase,
 } from '../../model/use-cases';
 
 export function payrollController(organization: OrganizationContext) {
@@ -30,7 +32,16 @@ export function payrollController(organization: OrganizationContext) {
   };
 
   const markPayrollRunPaid = async (_checker: PermissionChecker, runId: CUID) => {
-    return markPayrollRunPaidUseCase(repository)(runId);
+    const emailService = await emailSenderService();
+    return markPayrollRunPaidUseCase(repository, emailService)(runId);
+  };
+
+  const resendPayrollRunEmails = async (_checker: PermissionChecker, runId: CUID) => {
+    const run = await repository.findPayrollRunById(runId);
+    if (!run) throw new Error('Payroll run not found');
+    const emailService = await emailSenderService();
+    dispatchPayslipEmailsUseCase(repository, emailService)(run).catch(() => {});
+    return { success: true };
   };
 
   const updateSalaryConfig = async (_checker: PermissionChecker, dto: UpdateSalaryConfigDto) => {
@@ -92,6 +103,11 @@ export function payrollController(organization: OrganizationContext) {
       ResourceType.COMPANY_PAYROLL,
       PermissionAction.EDIT,
       markPayrollRunPaid,
+    ),
+    resendPayrollRunEmails: requirePermission(
+      ResourceType.COMPANY_PAYROLL,
+      PermissionAction.EDIT,
+      resendPayrollRunEmails,
     ),
     updateSalaryConfig: requirePermission(
       ResourceType.COMPANY_PAYROLL,

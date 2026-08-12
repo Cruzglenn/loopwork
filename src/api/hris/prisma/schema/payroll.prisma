@@ -24,6 +24,13 @@ enum PayslipItemType {
   DEDUCTION
 }
 
+enum PayslipEmailStatus {
+  NOT_SENT
+  PENDING
+  SENT
+  FAILED
+}
+
 model PayrollRun {
   id              String           @id @default(cuid())
   name            String
@@ -69,6 +76,9 @@ model Payslip {
   grossPay        Float         @default(0)
   netPay          Float         @default(0)
   status          PayrollStatus @default(DRAFT)
+  emailStatus     PayslipEmailStatus @default(NOT_SENT)
+  emailedAt       DateTime?
+  emailError      String?
   paidAt          DateTime?
   notes           String?
   createdAt       DateTime      @default(now())

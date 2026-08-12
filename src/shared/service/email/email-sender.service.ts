@@ -9,6 +9,11 @@ export type SendEmailPayload = {
     template: string;
     variables: { [key: string]: string | number };
   };
+  attachments?: Array<{
+    filename: string;
+    content: Buffer;
+    contentType?: string;
+  }>;
 };
 export type EmailSenderService = {
   sendEmail: (payload: SendEmailPayload) => Promise<void>;
@@ -22,6 +27,7 @@ export function emailSenderService(
     const {
       to,
       html: { template, variables },
+      attachments,
     } = payload;
 
     const { subject, html } = templateService<EmailTemplate>(template, variables);
@@ -41,6 +47,7 @@ export function emailSenderService(
       to,
       subject,
       html,
+      attachments,
     });
   }
 
