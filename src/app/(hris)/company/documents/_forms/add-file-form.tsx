@@ -89,7 +89,10 @@ export function AddFileForm({ categories, dateFormat }: Props): JSX.Element {
     }
   };
 
-  const handleSuccess = () => router.push(HRIS_ROUTES.documents.base);
+  const handleSuccess = () => {
+    router.refresh();
+    router.push(HRIS_ROUTES.documents.base);
+  };
 
   return (
     <div className="pt-4">

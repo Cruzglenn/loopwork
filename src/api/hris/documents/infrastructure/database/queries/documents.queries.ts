@@ -101,7 +101,9 @@ export function documentsQueries(organizationContext: OrganizationContext): Docu
       if (!categoryId || categoryId === 'ALL' || categoryId === 'EMPLOYEE' || categoryId === 'EQUIPMENT') {
         return {};
       }
-      return { categoryId };
+      return {
+        OR: [{ categoryId }, { documentCategory: { name: { equals: categoryId, mode: 'insensitive' } } }],
+      };
     };
 
     const handleFilterByAssignFilter = (): OrganizationPrisma.DocumentWhereInput => {
