@@ -2,6 +2,7 @@
 
 import { useFormStatus } from 'react-dom';
 import { type TranslationValues, useTranslations } from 'next-intl';
+import { useFormSubmitting } from './form';
 
 type FormState = {
   name: string | undefined;
@@ -22,6 +23,8 @@ type Props = {
 
 export function FormControl({ name, prefix, errors, translationValues, children, isReadOnly }: Props) {
   const { pending } = useFormStatus();
+  const contextPending = useFormSubmitting();
+  const isSubmitting = pending || contextPending;
   const t = useTranslations();
 
   const errorMessage = name && errors?.[name]?.[0];
@@ -30,7 +33,7 @@ export function FormControl({ name, prefix, errors, translationValues, children,
     name: prefix ? `${prefix}-${name}` : name,
     isInvalid: !!name && !!errors?.[name]?.length,
     errorMessage: errorMessage ? t(errorMessage, translationValues) : undefined,
-    isSubmitting: pending,
-    isReadOnly: isReadOnly || pending,
+    isSubmitting,
+    isReadOnly: isReadOnly || isSubmitting,
   });
 }

@@ -1,10 +1,21 @@
 'use client';
 
-import React, { type ComponentProps, type ReactNode, useEffect, useRef } from 'react';
+import React, {
+  createContext,
+  useContext,
+  type ComponentProps,
+  type ReactNode,
+  useEffect,
+  useRef,
+} from 'react';
 import { useActionState } from 'react';
 import { type BaseActionReturnType } from '@/shared';
 import { usePreventAwayNavigation } from '@/lib/ui/hooks';
 import { FormInfo } from '@/lib/ui';
+
+const FormSubmittingContext = createContext<boolean>(false);
+
+export const useFormSubmitting = () => useContext(FormSubmittingContext);
 
 type Props<TData, TValidation, TForm> = {
   focusInputOnError?: boolean;
@@ -34,7 +45,7 @@ export function Form<TData, TValidation, TForm>({
   disablePreventAwayNavigation = false,
   ...other
 }: Props<TData, TValidation, TForm>): JSX.Element {
-  const [state, serverAction] = useActionState(action, defaultState);
+  const [state, serverAction, isPending] = useActionState(action, defaultState);
   usePreventAwayNavigation(!disablePreventAwayNavigation);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -104,9 +115,11 @@ export function Form<TData, TValidation, TForm>({
   const formErrors = state.status === 'validation-error' ? state.errors : undefined;
 
   return (
-    <form noValidate action={serverAction} ref={formRef} {...other}>
-      {errorMessage && <FormInfo state={state} text={errorMessage} />}
-      {children(state.form, formErrors)}
-    </form>
+    <FormSubmittingContext.Provider value={isPending}>
+      <form noValidate action={serverAction} ref={formRef} {...other}>
+        {errorMessage && <FormInfo state={state} text={errorMessage} />}
+        {children(state.form, formErrors)}
+      </form>
+    </FormSubmittingContext.Provider>
   );
 }

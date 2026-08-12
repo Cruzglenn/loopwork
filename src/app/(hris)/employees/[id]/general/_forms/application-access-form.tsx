@@ -171,6 +171,7 @@ function IdentityForm({
                     <Button
                       icon="ok"
                       intent="primary"
+                      isDisabled={isSubmitting}
                       isLoading={isSubmitting && !sendNotification}
                       name="save"
                       type="submit"
@@ -181,6 +182,7 @@ function IdentityForm({
                     <Button
                       icon="ok"
                       intent="secondary"
+                      isDisabled={isSubmitting}
                       isLoading={isSubmitting && sendNotification}
                       name="saveAndNotify"
                       type="submit"
