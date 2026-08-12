@@ -7,7 +7,7 @@ export function sendInviteService(): InviteMessageSender {
 
   return {
     async sendInvite(payload: SendInvitePayload): Promise<void> {
-      const appLink = appUrl;
+      const appLink = `${appUrl}/sign-in`;
 
       const notificationsService = await notificationsServiceFactory();
       await notificationsService.sendNotification({

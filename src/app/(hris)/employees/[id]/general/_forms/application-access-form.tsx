@@ -9,7 +9,6 @@ import {
   Section,
   TextInput,
   Form as FormComponent,
-  FormFooter,
   ComboBox,
   Button,
 } from '@/lib/ui';
@@ -18,7 +17,12 @@ import { useToast } from '@/lib/ui/hooks';
 import { type RoleListItemDto } from '@/api/hris/authorization/infrastructure/controllers/roles.controller';
 import { EMPLOYEE_GENERAL_TOASTS } from '@/shared/constants/toast-notifications';
 import { StringTools } from '@/shared/utils/string-tools';
-import { createIdentityAction, updateIdentityAction, deleteIdentityAction } from '../_actions';
+import {
+  createIdentityAction,
+  updateIdentityAction,
+  deleteIdentityAction,
+  reinviteIdentityAction,
+} from '../_actions';
 
 type Props = {
   employeeId: CUID;
@@ -44,6 +48,7 @@ function IdentityForm({
   const pushToast = useToast();
   const router = useRouter();
   const [generatedPassword, setGeneratedPassword] = useState<string>('');
+  const [sendNotification, setSendNotification] = useState<boolean>(false);
 
   const isUpdate = !!identityId;
   const currentRole = isUpdate ? availableRoles.find((r) => identityRoles.includes(r.key)) : null;
@@ -82,7 +87,7 @@ function IdentityForm({
           <>
             <input name="employeeId" type="hidden" value={employeeId} />
             {isUpdate && <input name="identityId" type="hidden" value={identityId} />}
-            {!isUpdate && <input name="sendNotification" type="hidden" value="false" />}
+            <input name="sendNotification" type="hidden" value={sendNotification ? 'true' : 'false'} />
 
             <FormControl errors={formErrors} name="email">
               {(formState) => (
@@ -164,38 +169,42 @@ function IdentityForm({
               )}
             </FormControl>
 
-            <div className="flex gap-x-4">
-              {!isUpdate ? (
-                <FormControl>
-                  {({ isSubmitting }) => (
-                    <>
-                      <Button icon="ok" intent="primary" isLoading={isSubmitting} name="save" type="submit">
-                        {t('ctaLabels.save')}
-                      </Button>
-                      <Button
-                        icon="ok"
-                        intent="secondary"
-                        isLoading={isSubmitting}
-                        name="saveAndNotify"
-                        type="submit"
-                      >
-                        {t('employees.generalView.saveAndNotify')}
-                      </Button>
-                      <Button
-                        icon="close"
-                        intent="tertiary"
-                        isDisabled={isSubmitting}
-                        type="button"
-                        onClick={onSuccess}
-                      >
-                        {t('ctaLabels.cancel')}
-                      </Button>
-                    </>
-                  )}
-                </FormControl>
-              ) : (
-                <FormFooter onCancel={onSuccess} />
-              )}
+            <div className="flex flex-wrap gap-3 sm:col-span-2">
+              <FormControl>
+                {({ isSubmitting }) => (
+                  <>
+                    <Button
+                      icon="ok"
+                      intent="primary"
+                      isLoading={isSubmitting && !sendNotification}
+                      name="save"
+                      type="submit"
+                      onClick={() => setSendNotification(false)}
+                    >
+                      {t('ctaLabels.save')}
+                    </Button>
+                    <Button
+                      icon="ok"
+                      intent="secondary"
+                      isLoading={isSubmitting && sendNotification}
+                      name="saveAndNotify"
+                      type="submit"
+                      onClick={() => setSendNotification(true)}
+                    >
+                      {t('employees.generalView.saveAndNotify')}
+                    </Button>
+                    <Button
+                      icon="close"
+                      intent="tertiary"
+                      isDisabled={isSubmitting}
+                      type="button"
+                      onClick={onSuccess}
+                    >
+                      {t('ctaLabels.cancel')}
+                    </Button>
+                  </>
+                )}
+              </FormControl>
             </div>
           </>
         )}
@@ -216,6 +225,7 @@ export function ApplicationAccessForm({
 }: Props): JSX.Element {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isReinviting, setIsReinviting] = useState(false);
   const t = useTranslations();
   const router = useRouter();
   const pushToast = useToast();
@@ -231,6 +241,19 @@ export function ApplicationAccessForm({
       router.refresh();
     } else {
       pushToast(EMPLOYEE_GENERAL_TOASTS.IDENTITY_DELETE_ERROR);
+    }
+  };
+
+  const handleReinvite = async () => {
+    if (!identityId) return;
+    setIsReinviting(true);
+    const result = await reinviteIdentityAction(identityId, employeeId);
+    setIsReinviting(false);
+    if (result.status === 'success') {
+      pushToast(EMPLOYEE_GENERAL_TOASTS.IDENTITY_CREATE);
+      router.refresh();
+    } else {
+      pushToast(EMPLOYEE_GENERAL_TOASTS.IDENTITY_UPDATE);
     }
   };
 
@@ -286,8 +309,20 @@ export function ApplicationAccessForm({
               '-'
             )}
           </ContentBlock>
-          <div className="flex gap-2 sm:col-span-2">
-            <Button intent="danger" isDisabled={isDisabled} onClick={() => setIsDeleting(true)}>
+          <div className="flex flex-wrap gap-2 sm:col-span-2">
+            <Button
+              intent="secondary"
+              isDisabled={isDisabled || isReinviting}
+              isLoading={isReinviting}
+              onClick={handleReinvite}
+            >
+              {t('employees.generalView.saveAndNotify') || 'Resend Invite'}
+            </Button>
+            <Button
+              intent="danger"
+              isDisabled={isDisabled || isReinviting}
+              onClick={() => setIsDeleting(true)}
+            >
               {t('employees.generalView.revokeAccess')}
             </Button>
           </div>

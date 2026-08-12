@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache';
 import { hrisApi } from '@/api/hris';
 import { type CUID, handleActionError, type ActionReturnType, HRIS_ROUTES } from '@/shared';
 import { type RoleListItemDto } from '@/api/hris/authorization/infrastructure/controllers/roles.controller';
+import { StringTools } from '@/shared/utils/string-tools';
+import { sendInviteService } from '@/api/hris/authentication/infrastructure/service/invite.service';
 import {
   createIdentitySchema,
   type CreateIdentityForm,
@@ -53,23 +55,23 @@ export async function createIdentityAction(
   const rawRoleKey = formData.get('roleKey') as string;
   const form: CreateIdentityForm = {
     email: formData.get('email') as string,
-    password: formData.get('password') as string,
-    confirmPassword: formData.get('confirmPassword') as string,
+    password: (formData.get('password') as string) || undefined,
+    confirmPassword: (formData.get('confirmPassword') as string) || undefined,
     roleKey: rawRoleKey && rawRoleKey.trim() !== '' ? rawRoleKey : '',
   };
 
-  // If sending notification, validate and create identity with email invitation
-  if (sendNotification) {
-    const validation = createIdentitySchema.safeParse(form);
-    if (!validation.success) {
-      return {
-        ...prevState,
-        form,
-        status: 'validation-error',
-        errors: validation.error.flatten().fieldErrors,
-      };
-    }
+  const validation = createIdentitySchema.safeParse(form);
+  if (!validation.success) {
+    return {
+      ...prevState,
+      form,
+      status: 'validation-error',
+      errors: validation.error.flatten().fieldErrors,
+    };
+  }
 
+  // If sending notification, create identity with email invitation
+  if (sendNotification) {
     try {
       const api = hrisApi;
       const employeeId = formData.get('employeeId') as CUID;
@@ -95,14 +97,13 @@ export async function createIdentityAction(
     }
   }
 
-  // Manual creation with password
-  const validation = createIdentitySchema.safeParse(form);
-  if (!validation.success) {
+  // Manual creation with password (requires password >= 8 characters)
+  if (!form.password || form.password.length < 8) {
     return {
       ...prevState,
       form,
       status: 'validation-error',
-      errors: validation.error.flatten().fieldErrors,
+      errors: { password: ['Password must be at least 8 characters'] },
     };
   }
 
@@ -123,11 +124,7 @@ export async function createIdentityAction(
     const allRoles = await api.authorization.roles.getAllRoles();
     const roleKey = await getRoleKey(validation.data.roleKey, allRoles);
 
-    const identityId = await api.auth.createIdentityManually(
-      validation.data.email,
-      validation.data.password,
-      roleKey,
-    );
+    const identityId = await api.auth.createIdentityManually(validation.data.email, form.password, roleKey);
 
     await updateEmployeeStatusIfNeeded(api, employeeId);
     await api.employees.updateEmployeeGeneralInfo(employeeId, { identityId });
@@ -149,6 +146,8 @@ export async function updateIdentityAction(
   prevState: UpdateIdentityState,
   formData: FormData,
 ): Promise<UpdateIdentityState> {
+  const sendNotification =
+    formData.get('sendNotification') === 'true' || formData.get('saveAndNotify') !== null;
   const rawRoleKey = formData.get('roleKey') as string;
   const form: UpdateIdentityForm = {
     email: (formData.get('email') as string) || undefined,
@@ -157,7 +156,7 @@ export async function updateIdentityAction(
     roleKey: rawRoleKey && rawRoleKey.trim() !== '' ? rawRoleKey : undefined,
   };
 
-  // Only validate if password fields are provided
+  // Validate passwords if provided
   if (form.password || form.confirmPassword) {
     const passwordValidation = z
       .object({
@@ -195,6 +194,7 @@ export async function updateIdentityAction(
   try {
     const api = hrisApi;
     const identityId = formData.get('identityId') as CUID;
+    const employeeId = formData.get('employeeId') as CUID;
 
     // Get current identity to compare email
     const currentIdentity = await api.auth.getIdentityById(identityId);
@@ -202,11 +202,10 @@ export async function updateIdentityAction(
       return { ...prevState, ...handleActionError(new Error('Identity not found')) };
     }
 
+    const targetEmail = form.email && form.email.trim() !== '' ? form.email : currentIdentity.email;
     const updates: { email?: string; password?: string } = {};
 
-    const employeeId = formData.get('employeeId') as CUID;
-
-    // Only update email if it's provided and different from current email
+    // Only update email if provided and different from current email
     if (form.email && form.email.trim() !== '' && form.email !== currentIdentity.email) {
       updates.email = form.email;
       if (employeeId) {
@@ -214,13 +213,24 @@ export async function updateIdentityAction(
       }
     }
 
-    // Only update password if provided (it's already generated if user clicked generate button)
-    if (form.password && form.password.trim() !== '') {
+    let tempPassword = form.password;
+
+    // If sendNotification is true, ensure password exists or generate one and dispatch email
+    if (sendNotification) {
+      if (!tempPassword || tempPassword.trim() === '') {
+        tempPassword = StringTools.createRandomString(12);
+      }
+      updates.password = tempPassword;
+    } else if (form.password && form.password.trim() !== '') {
       updates.password = form.password;
     }
 
     if (Object.keys(updates).length > 0) {
       await api.auth.updateIdentity(identityId, updates);
+    }
+
+    if (sendNotification && tempPassword) {
+      await sendInviteService().sendInvite({ email: targetEmail, tempPassword });
     }
 
     // Handle role update if provided
@@ -257,6 +267,28 @@ export async function updateIdentityAction(
     };
   } catch (err) {
     return { ...prevState, form, ...handleActionError(err) };
+  }
+}
+
+export async function reinviteIdentityAction(identityId: CUID, employeeId: CUID) {
+  try {
+    const api = hrisApi;
+    const identity = await api.auth.getIdentityById(identityId);
+    if (!identity) {
+      return { status: 'error' as const, error: 'Identity not found' };
+    }
+
+    const tempPassword = StringTools.createRandomString(12);
+    await api.auth.updateIdentity(identityId, { password: tempPassword });
+    await sendInviteService().sendInvite({ email: identity.email, tempPassword });
+
+    revalidatePath(HRIS_ROUTES.employees.general.base(employeeId));
+
+    return {
+      status: 'success' as const,
+    };
+  } catch (err) {
+    return { ...handleActionError(err) };
   }
 }
 
