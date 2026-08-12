@@ -122,8 +122,11 @@ export function payrollQueries(db: OrganizationPrismaClient): PayrollQueries {
     const periodStart = startDate || new Date(now.getFullYear(), now.getMonth(), 1);
     const periodEnd = endDate || new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    const [allPayslips, allRuns] = await Promise.all([
-      db.payslip.findMany({
+    let allPayslips: PayslipDto[] = [];
+    let allRuns: PayrollRunDto[] = [];
+
+    try {
+      allPayslips = await db.payslip.findMany({
         where: {
           ...(statusFilter && statusFilter !== 'ALL' && { status: statusFilter as PayrollStatusDto }),
           ...(search && {
@@ -149,8 +152,14 @@ export function payrollQueries(db: OrganizationPrismaClient): PayrollQueries {
           },
         },
         orderBy: { createdAt: 'desc' },
-      }),
-      db.payrollRun.findMany({
+      });
+    } catch (err) {
+      console.error('Error fetching payslips in getCompanyPayrollOverview:', err);
+      allPayslips = [];
+    }
+
+    try {
+      allRuns = await db.payrollRun.findMany({
         orderBy: { createdAt: 'desc' },
         include: {
           payslips: {
@@ -169,8 +178,11 @@ export function payrollQueries(db: OrganizationPrismaClient): PayrollQueries {
             },
           },
         },
-      }),
-    ]);
+      });
+    } catch (err) {
+      console.error('Error fetching payrollRuns in getCompanyPayrollOverview:', err);
+      allRuns = [];
+    }
 
     const totalPayslips = allPayslips.length;
     let totalGrossPay = 0;

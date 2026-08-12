@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { getTranslations } from '@/shared/service/locale/get-translations';
 import { hrisApi } from '@/api/hris';
 import { Card } from '@/lib/ui';
 import { BasicHeader } from '@/lib/ui/components/basic-header';
@@ -20,14 +20,34 @@ export default async function CompanyPayrollPage({ searchParams }: Props) {
   const page = params.page ? +params.page : 1;
   const perPage = params.perPage ? +params.perPage : 10;
 
-  const overview = await hrisApi.payroll.getCompanyPayrollOverview(
-    undefined,
-    undefined,
-    params.status,
-    params.search,
-    page,
-    perPage,
-  );
+  let overview;
+  try {
+    overview = await hrisApi.payroll.getCompanyPayrollOverview(
+      undefined,
+      undefined,
+      params.status,
+      params.search,
+      page,
+      perPage,
+    );
+  } catch (err) {
+    console.error('Failed to load company payroll overview:', err);
+    overview = {
+      periodStart: new Date(),
+      periodEnd: new Date(),
+      totalPayslips: 0,
+      totalGrossPay: 0,
+      totalNetPay: 0,
+      totalDeductions: 0,
+      payslips: [],
+      runs: [],
+      page: 1,
+      perPage: 10,
+      totalPages: 1,
+      nextPage: null,
+      prevPage: null,
+    };
+  }
 
   return (
     <div className="flex min-h-full min-w-0 flex-1">
