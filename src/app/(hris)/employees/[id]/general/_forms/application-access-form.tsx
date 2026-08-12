@@ -17,12 +17,7 @@ import { useToast } from '@/lib/ui/hooks';
 import { type RoleListItemDto } from '@/api/hris/authorization/infrastructure/controllers/roles.controller';
 import { EMPLOYEE_GENERAL_TOASTS } from '@/shared/constants/toast-notifications';
 import { StringTools } from '@/shared/utils/string-tools';
-import {
-  createIdentityAction,
-  updateIdentityAction,
-  deleteIdentityAction,
-  reinviteIdentityAction,
-} from '../_actions';
+import { createIdentityAction, updateIdentityAction, deleteIdentityAction } from '../_actions';
 
 type Props = {
   employeeId: CUID;
@@ -225,7 +220,6 @@ export function ApplicationAccessForm({
 }: Props): JSX.Element {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isReinviting, setIsReinviting] = useState(false);
   const t = useTranslations();
   const router = useRouter();
   const pushToast = useToast();
@@ -241,19 +235,6 @@ export function ApplicationAccessForm({
       router.refresh();
     } else {
       pushToast(EMPLOYEE_GENERAL_TOASTS.IDENTITY_DELETE_ERROR);
-    }
-  };
-
-  const handleReinvite = async () => {
-    if (!identityId) return;
-    setIsReinviting(true);
-    const result = await reinviteIdentityAction(identityId, employeeId);
-    setIsReinviting(false);
-    if (result.status === 'success') {
-      pushToast(EMPLOYEE_GENERAL_TOASTS.IDENTITY_CREATE);
-      router.refresh();
-    } else {
-      pushToast(EMPLOYEE_GENERAL_TOASTS.IDENTITY_UPDATE);
     }
   };
 
@@ -309,20 +290,8 @@ export function ApplicationAccessForm({
               '-'
             )}
           </ContentBlock>
-          <div className="flex flex-wrap gap-2 sm:col-span-2">
-            <Button
-              intent="secondary"
-              isDisabled={isDisabled || isReinviting}
-              isLoading={isReinviting}
-              onClick={handleReinvite}
-            >
-              {t('employees.generalView.saveAndNotify') || 'Resend Invite'}
-            </Button>
-            <Button
-              intent="danger"
-              isDisabled={isDisabled || isReinviting}
-              onClick={() => setIsDeleting(true)}
-            >
+          <div className="flex gap-2 sm:col-span-2">
+            <Button intent="danger" isDisabled={isDisabled} onClick={() => setIsDeleting(true)}>
               {t('employees.generalView.revokeAccess')}
             </Button>
           </div>
