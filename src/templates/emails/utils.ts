@@ -38,23 +38,27 @@ export function templateHtml(
     let bg = '#eff6ff';
     let textCol = '#1d4ed8';
     let borderCol = '#bfdbfe';
+    let badgeClass = 'badge-info';
 
     if (badge.variant === 'success') {
       bg = '#ecfdf5';
       textCol = '#047857';
       borderCol = '#a7f3d0';
+      badgeClass = 'badge-success';
     } else if (badge.variant === 'danger') {
       bg = '#fef2f2';
       textCol = '#b91c1c';
       borderCol = '#fecaca';
+      badgeClass = 'badge-danger';
     } else if (badge.variant === 'warning') {
       bg = '#fffbeb';
       textCol = '#b45309';
       borderCol = '#fde68a';
+      badgeClass = 'badge-warning';
     }
 
     badgeHtml = `
-      <div style="display: inline-block; margin-bottom: 20px; padding: 6px 14px; background-color: ${bg}; border: 1px solid ${borderCol}; border-radius: 0px; color: ${textCol}; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
+      <div style="display: inline-block; margin-bottom: 20px; padding: 6px 14px; background-color: ${bg}; border: 1px solid ${borderCol}; border-radius: 0px; color: ${textCol}; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;" class="${badgeClass}">
         ${badge.text}
       </div>`;
   }
@@ -72,7 +76,7 @@ export function templateHtml(
       .join('');
 
     detailsHtml = `
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 24px; margin-bottom: 12px; background-color: #f8fafc; border-radius: 0px; border: 1px solid #cbd5e1; border-collapse: separate; border-spacing: 0; table-layout: fixed; width: 100%; box-sizing: border-box;" class="detail-box">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 24px; margin-bottom: 12px; background-color: #f8fafc; border-radius: 0px; border: 1px solid #e2e8f0; border-collapse: separate; border-spacing: 0; table-layout: fixed; width: 100%; box-sizing: border-box;" class="detail-box">
         <tbody>
           ${rows}
         </tbody>
@@ -80,11 +84,11 @@ export function templateHtml(
   }
 
   const subheadingHtml = subheading
-    ? `<p style="margin: 0 0 16px 0; font-size: 15px; color: #475569; line-height: 1.6;" class="email-muted">${subheading}</p>`
+    ? `<p style="margin: 0 0 16px 0; font-size: 15px; color: #64748b; line-height: 1.6;" class="email-muted">${subheading}</p>`
     : '';
 
   const contentHtml = content
-    ? `<div style="font-size: 15px; line-height: 1.6; color: #334155;" class="email-text">${content}</div>`
+    ? `<div style="font-size: 15px; line-height: 1.6; color: #475569;" class="email-text">${content}</div>`
     : '';
 
   const ctaHtml = cta
@@ -92,7 +96,7 @@ export function templateHtml(
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 28px;">
       <tr>
         <td align="center">
-          <a href="${cta.href}" target="_blank" style="display: inline-block; background-color: #0A11EB; color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 0px; letter-spacing: 0.3px; border: none;" class="cta-btn">
+          <a href="${cta.href}" target="_blank" style="display: inline-block; background-color: #2563eb; background-image: linear-gradient(#2563eb, #2563eb); color: #ffffff !important; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 0px; letter-spacing: 0.3px; border: none;" class="cta-btn">
             ${cta.label}
           </a>
         </td>
@@ -137,11 +141,13 @@ export function templateHtml(
       .detail-label { color: #94a3b8 !important; border-color: #334155 !important; }
       .detail-val { color: #f8fafc !important; border-color: #334155 !important; }
       .email-footer { color: #64748b !important; }
+      .cta-btn { background-color: #2563eb !important; background-image: linear-gradient(#2563eb, #2563eb) !important; color: #ffffff !important; }
+      .badge-info { background-color: #1e3a8a !important; color: #93c5fd !important; border-color: #1d4ed8 !important; }
     }
   </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;" class="email-bg">
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f1f5f9; table-layout: fixed;" class="email-bg">
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;" class="email-bg">
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc; table-layout: fixed;" class="email-bg">
     <tr>
       <td align="center" style="padding: 32px 12px;" class="email-container">
         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 560px; margin: 0 auto;">
@@ -155,7 +161,7 @@ export function templateHtml(
           </tr>
           <!-- Main Card (Sharp Corners) -->
           <tr>
-            <td style="background-color: #ffffff; border-radius: 0px; padding: 36px 32px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06); border: 1px solid #cbd5e1;" class="email-card">
+            <td style="background-color: #ffffff; border-radius: 0px; padding: 36px 32px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06); border: 1px solid #e2e8f0;" class="email-card">
               ${badgeHtml}
               <h1 style="margin: 0 0 14px 0; font-size: 22px; font-weight: 800; color: #0f172a; line-height: 1.3;" class="email-title">
                 ${heading}
