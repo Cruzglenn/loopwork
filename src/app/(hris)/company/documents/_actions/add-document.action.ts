@@ -14,11 +14,17 @@ export async function addDocument(
 ): Promise<AddDocumentState> {
   const api = hrisApi;
 
+  // Filter out empty file input entries (name === '' or size === 0)
+  const rawDocuments = formData.getAll('documents') as File[];
+  const documents = rawDocuments.filter(
+    (file) => file && typeof file.name === 'string' && file.name.trim().length > 0 && file.size > 0,
+  );
+
   const form: AddDocumentSchema = {
     category: formData.get('category') as string,
     description: formData.get('description') as string,
     expirationDate: formData.get('expirationDate') as string,
-    documents: formData.getAll('documents') as File[],
+    documents,
   };
 
   try {
@@ -30,7 +36,7 @@ export async function addDocument(
       };
     }
 
-    const { description, expirationDate, documents } = form;
+    const { description, expirationDate } = form;
     const categoryValue = form.category?.trim() || null;
     const expirationDateValue = expirationDate ? new Date(expirationDate) : null;
 
@@ -44,29 +50,25 @@ export async function addDocument(
     let categoryId: Nullable<CUID> = null;
     if (categoryValue) {
       // Check if the value is a CUID (existing category ID from dropdown)
-      // CUID format: starts with 'c' followed by 18-25 alphanumeric characters
       const isCUID = /^c[a-z0-9]{18,25}$/.test(categoryValue);
 
       if (isCUID) {
-        // It's an existing category ID from the dropdown
         categoryId = categoryValue;
       } else {
-        // It's a new category name - try to find existing category by name first
+        // It's a new or custom category name - search for existing category by name first
         try {
-          // Search for category by exact name
           const searchResults = await api.documents.getAllCategories(categoryValue, undefined, 'all');
           const existingCategory = searchResults.items.find(
             (cat) => cat.name.toLowerCase() === categoryValue.toLowerCase(),
           );
 
           if (existingCategory) {
-            // Category already exists, use its ID
             categoryId = existingCategory.id;
           } else {
-            // Category doesn't exist, create it
             categoryId = await api.documents.createDocumentCategory(categoryValue);
           }
         } catch (err) {
+          logger.error(err, 'Failed to resolve or create document category');
           return {
             ...prevState,
             ...handleActionError(err),
@@ -95,7 +97,7 @@ export async function addDocument(
       status: 'success',
     };
   } catch (err) {
-    logger.info(err);
+    logger.error(err, 'Error executing addDocument action');
 
     return {
       ...prevState,

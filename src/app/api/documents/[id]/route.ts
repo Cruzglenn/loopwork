@@ -12,13 +12,14 @@ const MIME_TYPES: Record<string, string> = {
   '.svg': 'image/svg+xml',
 };
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const api = hrisApi;
 
-  const document = await api.documents.getDocumentById(params.id);
+  const document = await api.documents.getDocumentById(id);
 
   if (!document) {
-    throw new ApiError(404, API_ERROR_MESSAGES.DOCUMENTS.NOT_FOUND(params.id));
+    throw new ApiError(404, API_ERROR_MESSAGES.DOCUMENTS.NOT_FOUND(id));
   }
 
   const ext = path.extname(document.filePath);

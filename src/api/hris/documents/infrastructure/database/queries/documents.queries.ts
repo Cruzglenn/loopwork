@@ -98,10 +98,10 @@ export function documentsQueries(organizationContext: OrganizationContext): Docu
     perPage: number = ITEMS_PER_PAGE,
   ) => {
     const handleCustomCategoryFilter = (): OrganizationPrisma.DocumentWhereInput => {
-      if (!categoryId) {
+      if (!categoryId || categoryId === 'ALL' || categoryId === 'EMPLOYEE' || categoryId === 'EQUIPMENT') {
         return {};
       }
-      return { categoryId: categoryId.toLowerCase() };
+      return { categoryId };
     };
 
     const handleFilterByAssignFilter = (): OrganizationPrisma.DocumentWhereInput => {
@@ -114,13 +114,13 @@ export function documentsQueries(organizationContext: OrganizationContext): Docu
         return {};
       }
 
-      if (assignFilter.includes('ASSIGNED')) {
+      if (assignFilter.includes('ASSIGNED') || categoryId === 'EMPLOYEE') {
         return {
           assignedTo: { not: null },
         };
       }
 
-      if (assignFilter.includes('FREE')) {
+      if (assignFilter.includes('FREE') || categoryId === 'EQUIPMENT') {
         return {
           assignedTo: null,
         };
