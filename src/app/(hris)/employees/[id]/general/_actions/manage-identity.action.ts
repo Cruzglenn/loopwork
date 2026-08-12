@@ -114,12 +114,18 @@ export async function createIdentityAction(
             await api.authorization.roles.assignRoleToIdentity(identityId, roleToAssign.id);
           }
         }
+        await sendInviteService().sendInvite({ email: targetEmail, tempPassword });
       } else {
         identityId = await api.auth.createIdentity(targetEmail, roleKey);
-        await api.auth.updateIdentity(identityId, { password: tempPassword });
+        if (
+          validation.data.password &&
+          validation.data.confirmPassword &&
+          validation.data.password === validation.data.confirmPassword &&
+          validation.data.password.length >= 8
+        ) {
+          await api.auth.updateIdentity(identityId, { password: tempPassword });
+        }
       }
-
-      await sendInviteService().sendInvite({ email: targetEmail, tempPassword });
 
       await updateEmployeeStatusIfNeeded(api, employeeId);
       await api.employees.updateEmployeeGeneralInfo(employeeId, { identityId, workEmail: targetEmail });

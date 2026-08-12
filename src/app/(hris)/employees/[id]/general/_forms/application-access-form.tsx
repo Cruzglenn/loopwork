@@ -58,6 +58,14 @@ function IdentityForm({
     router.refresh();
   };
 
+  const handleError = (error?: string) => {
+    pushToast({
+      intent: 'error',
+      label: 'employees.general.identity.deleteError',
+      description: error,
+    });
+  };
+
   const handleGeneratePassword = () => {
     const generated = StringTools.createRandomString(12);
     setGeneratedPassword(generated);
@@ -93,6 +101,7 @@ function IdentityForm({
             roleKey: currentRole?.key || '',
           },
         }}
+        onError={handleError}
         onSuccess={handleSuccess}
       >
         {(form, formErrors) => (
