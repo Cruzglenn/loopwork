@@ -155,7 +155,7 @@ export function templateHtml(
           <tr>
             <td align="center" style="padding-bottom: 24px;">
               <a href="https://eurielleivy.site" target="_blank" style="text-decoration: none;">
-                <img src="https://eygaannaqiztkkxfkpsh.supabase.co/storage/v1/object/public/photos/default-org-id/ChatGPT_Image_Aug_10__2026__04_12_04_AM.webp" alt="Loopwork" height="44" style="display: block; height: 44px; max-height: 44px; width: auto; border: 0;" />
+                <img src="https://eygaannaqiztkkxfkpsh.supabase.co/storage/v1/object/public/photos/default-org-id/loopwork.webp" alt="Loopwork" height="44" style="display: block; height: 44px; max-height: 44px; width: auto; border: 0;" />
               </a>
             </td>
           </tr>

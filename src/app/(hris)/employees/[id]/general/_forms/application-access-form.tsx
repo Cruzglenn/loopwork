@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from '@/shared/service/locale/use-translations';
 import {
@@ -44,6 +44,7 @@ function IdentityForm({
   const router = useRouter();
   const [generatedPassword, setGeneratedPassword] = useState<string>('');
   const [sendNotification, setSendNotification] = useState<boolean>(false);
+  const sendNotificationRef = useRef<HTMLInputElement>(null);
 
   const isUpdate = !!identityId;
   const currentRole = isUpdate ? availableRoles.find((r) => identityRoles.includes(r.key)) : null;
@@ -58,6 +59,20 @@ function IdentityForm({
   const handleGeneratePassword = () => {
     const generated = StringTools.createRandomString(12);
     setGeneratedPassword(generated);
+  };
+
+  const handleSaveClick = () => {
+    if (sendNotificationRef.current) {
+      sendNotificationRef.current.value = 'false';
+    }
+    setSendNotification(false);
+  };
+
+  const handleSaveAndNotifyClick = () => {
+    if (sendNotificationRef.current) {
+      sendNotificationRef.current.value = 'true';
+    }
+    setSendNotification(true);
   };
 
   return (
@@ -82,7 +97,7 @@ function IdentityForm({
           <>
             <input name="employeeId" type="hidden" value={employeeId} />
             {isUpdate && <input name="identityId" type="hidden" value={identityId} />}
-            <input name="sendNotification" type="hidden" value={sendNotification ? 'true' : 'false'} />
+            <input name="sendNotification" ref={sendNotificationRef} type="hidden" value="false" />
 
             <FormControl errors={formErrors} name="email">
               {(formState) => (
@@ -175,7 +190,7 @@ function IdentityForm({
                       isLoading={isSubmitting && !sendNotification}
                       name="save"
                       type="submit"
-                      onClick={() => setSendNotification(false)}
+                      onClick={handleSaveClick}
                     >
                       {t('ctaLabels.save')}
                     </Button>
@@ -186,7 +201,7 @@ function IdentityForm({
                       isLoading={isSubmitting && sendNotification}
                       name="saveAndNotify"
                       type="submit"
-                      onClick={() => setSendNotification(true)}
+                      onClick={handleSaveAndNotifyClick}
                     >
                       {t('employees.generalView.saveAndNotify')}
                     </Button>
