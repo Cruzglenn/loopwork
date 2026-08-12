@@ -1262,6 +1262,11 @@
       "basicInfo": {
         "success": "Updating successful"
       },
+      "documents": {
+        "upload": {
+          "error": "Upload failed"
+        }
+      },
       "benefits": {
         "delete": {
           "success": "Benefit deleted successfully"
@@ -1328,6 +1333,11 @@
       },
       "ical": {
         "copyToClipboard": "Copied to clipboard"
+      }
+    },
+    "documents": {
+      "upload": {
+        "error": "Upload failed"
       }
     }
   },
