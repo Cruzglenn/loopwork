@@ -57,6 +57,22 @@ export function employeesEarningsController(
       value: new Decimal(earnings.value),
       date: new Date(earnings.date),
     });
+
+    // Auto-sync baseSalary in employeeSalaryConfig for automated payroll generation
+    const numValue = Number(earnings.value);
+    if (!isNaN(numValue) && numValue > 0) {
+      await organizationContext.db.employeeSalaryConfig.upsert({
+        where: { employeeId },
+        update: { baseSalary: numValue, hourlyRate: numValue / 160 },
+        create: {
+          employeeId,
+          baseSalary: numValue,
+          payPeriod: 'MONTHLY',
+          hourlyRate: numValue / 160,
+          currency: 'PHP',
+        },
+      });
+    }
   };
 
   const editEmployeeEarnings = async (
@@ -81,6 +97,22 @@ export function employeesEarningsController(
       value: new Decimal(earnings.value),
       date: new Date(earnings.date),
     });
+
+    // Auto-sync baseSalary in employeeSalaryConfig for automated payroll generation
+    const numValue = Number(earnings.value);
+    if (!isNaN(numValue) && numValue > 0) {
+      await organizationContext.db.employeeSalaryConfig.upsert({
+        where: { employeeId },
+        update: { baseSalary: numValue, hourlyRate: numValue / 160 },
+        create: {
+          employeeId,
+          baseSalary: numValue,
+          payPeriod: 'MONTHLY',
+          hourlyRate: numValue / 160,
+          currency: 'PHP',
+        },
+      });
+    }
   };
 
   const deleteEmployeeEarnings = async (checker: PermissionChecker, employeeId: CUID, earningId: CUID) => {
