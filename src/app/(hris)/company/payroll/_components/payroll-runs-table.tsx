@@ -57,6 +57,8 @@ export function PayrollRunsTable({ runs }: Props) {
     });
   };
 
+  const currentSelectedRun = runs.find((r) => r.id === selectedRunDetails?.id) || selectedRunDetails;
+
   return (
     <>
       <div className="shadow-xs overflow-hidden rounded-xl border border-gray-200 bg-white">
@@ -146,7 +148,7 @@ export function PayrollRunsTable({ runs }: Props) {
       {/* Detail Slide-Over / Modal */}
       <PayrollRunDetailsModal
         isOpen={Boolean(selectedRunDetails)}
-        run={selectedRunDetails}
+        run={currentSelectedRun}
         onOpenChange={(open) => !open && setSelectedRunDetails(null)}
         onOpenExport={(run) => setSelectedRunExport(run)}
       />

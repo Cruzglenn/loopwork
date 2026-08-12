@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { type PayrollRunDto } from '@/api/hris/payroll/model/dtos';
+import { type PayrollRunDto, type PayslipDto } from '@/api/hris/payroll/model/dtos';
 import { Button, Chip, Modal } from '@/lib/ui';
 import { ModalHeader } from '@/lib/ui/components/modal/modal-header';
+import { useToast } from '@/lib/ui/hooks';
 import { API_ROUTES, parseDate } from '@/shared';
 import {
   resendPayrollRunEmailsAction,
@@ -19,22 +21,75 @@ type Props = {
 };
 
 export function PayrollRunDetailsModal({ run, isOpen, onOpenChange, onOpenExport }: Props) {
+  const router = useRouter();
+  const toast = useToast();
   const [isPending, startTransition] = useTransition();
   const [sendingSlipId, setSendingSlipId] = useState<string | null>(null);
+  const [isBatchSending, setIsBatchSending] = useState(false);
+  const [payslips, setPayslips] = useState<PayslipDto[]>(run?.payslips || []);
+
+  useEffect(() => {
+    if (run?.payslips) {
+      setPayslips(run.payslips);
+    }
+  }, [run?.payslips]);
 
   if (!run) return null;
 
   const handleResendEmails = () => {
+    setIsBatchSending(true);
+    setPayslips((prev) => prev.map((s) => ({ ...s, emailStatus: 'PENDING' })));
+
     startTransition(async () => {
-      await resendPayrollRunEmailsAction(run.id);
+      try {
+        const res = await resendPayrollRunEmailsAction(run.id);
+        if (res && 'error' in res) {
+          toast({ intent: 'error', label: 'Failed to dispatch batch payslip emails' });
+        } else {
+          toast({ intent: 'success', label: 'Batch payslip email sending started!' });
+        }
+      } catch {
+        toast({ intent: 'error', label: 'Error sending batch payslip emails' });
+      } finally {
+        setIsBatchSending(false);
+        router.refresh();
+      }
     });
   };
 
-  const handleSendSingleEmail = (slipId: string) => {
+  const handleSendSingleEmail = (slipId: string, employeeName: string) => {
     setSendingSlipId(slipId);
+    setPayslips((prev) =>
+      prev.map((s) => (s.id === slipId ? { ...s, emailStatus: 'PENDING', emailError: null } : s)),
+    );
+
     startTransition(async () => {
-      await sendSinglePayslipEmailAction(slipId);
-      setSendingSlipId(null);
+      try {
+        const res = await sendSinglePayslipEmailAction(slipId);
+        if (res && 'error' in res) {
+          const errorMsg = typeof res.error === 'string' ? res.error : 'Failed to send email';
+          setPayslips((prev) =>
+            prev.map((s) => (s.id === slipId ? { ...s, emailStatus: 'FAILED', emailError: errorMsg } : s)),
+          );
+          toast({ intent: 'error', label: `Failed to send email to ${employeeName}` });
+        } else {
+          setPayslips((prev) =>
+            prev.map((s) =>
+              s.id === slipId ? { ...s, emailStatus: 'SENT', emailedAt: new Date(), emailError: null } : s,
+            ),
+          );
+          toast({ intent: 'success', label: `Payslip email sent to ${employeeName}!` });
+        }
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        setPayslips((prev) =>
+          prev.map((s) => (s.id === slipId ? { ...s, emailStatus: 'FAILED', emailError: errorMsg } : s)),
+        );
+        toast({ intent: 'error', label: `Failed to send email to ${employeeName}` });
+      } finally {
+        setSendingSlipId(null);
+        router.refresh();
+      }
     });
   };
 
@@ -90,11 +145,12 @@ export function PayrollRunDetailsModal({ run, isOpen, onOpenChange, onOpenExport
               <Button
                 icon="refresh"
                 intent="secondary"
-                isDisabled={isPending}
+                isDisabled={isPending || isBatchSending}
+                isLoading={isBatchSending}
                 size="sm"
                 onClick={handleResendEmails}
               >
-                {isPending && !sendingSlipId ? 'Sending Batch...' : 'Resend Batch Emails'}
+                {isBatchSending ? 'Sending Batch...' : 'Resend Batch Emails'}
               </Button>
             )}
             <Button
@@ -147,58 +203,67 @@ export function PayrollRunDetailsModal({ run, isOpen, onOpenChange, onOpenExport
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-gray-700">
-                {(run.payslips || []).map((slip) => (
-                  <tr key={slip.id} className="hover:bg-gray-50/80">
-                    <td className="p-2.5 font-medium text-gray-900">
-                      <div>
-                        {slip.employee ? `${slip.employee.firstName} ${slip.employee.lastName}` : 'Employee'}
-                      </div>
-                      {slip.employee?.workEmail ? (
-                        <div className="text-[10px] font-normal text-gray-500">{slip.employee.workEmail}</div>
-                      ) : (
-                        <div className="text-[10px] font-normal text-amber-600">No work email address</div>
-                      )}
-                    </td>
-                    <td className="p-2.5 text-right">₱{slip.grossPay.toLocaleString()}</td>
-                    <td className="p-2.5 text-right text-red-600">
-                      -₱{slip.deductionsTotal.toLocaleString()}
-                    </td>
-                    <td className="p-2.5 text-right font-bold text-green-600">
-                      ₱{slip.netPay.toLocaleString()}
-                    </td>
-                    <td className="p-2.5 text-center">
-                      <div className="flex flex-col items-center gap-0.5">
-                        {getEmailStatusChip(slip.emailStatus, slip.emailError)}
-                        {slip.emailError && (
-                          <span
-                            className="max-w-[140px] truncate text-[9px] text-red-500"
-                            title={slip.emailError}
-                          >
-                            {slip.emailError}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-2.5 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {/* Send Individual Email Button */}
-                        <Button
-                          aria-label="Send Payslip Email"
-                          icon="refresh"
-                          intent="tertiary"
-                          isDisabled={isPending}
-                          size="sm"
-                          onClick={() => handleSendSingleEmail(slip.id)}
-                        />
+                {payslips.map((slip) => {
+                  const empName = slip.employee
+                    ? `${slip.employee.firstName} ${slip.employee.lastName}`
+                    : 'Employee';
+                  const isSendingThis = sendingSlipId === slip.id;
 
-                        {/* Download PDF Payslip */}
-                        <Link href={API_ROUTES.downloadPayslip(slip.id)} target="_blank">
-                          <Button aria-label="Download PDF" icon="document-text" intent="ghost" size="sm" />
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                  return (
+                    <tr key={slip.id} className="hover:bg-gray-50/80">
+                      <td className="p-2.5 font-medium text-gray-900">
+                        <div>{empName}</div>
+                        {slip.employee?.workEmail ? (
+                          <div className="text-[10px] font-normal text-gray-500">
+                            {slip.employee.workEmail}
+                          </div>
+                        ) : (
+                          <div className="text-[10px] font-normal text-amber-600">No work email address</div>
+                        )}
+                      </td>
+                      <td className="p-2.5 text-right">₱{slip.grossPay.toLocaleString()}</td>
+                      <td className="p-2.5 text-right text-red-600">
+                        -₱{slip.deductionsTotal.toLocaleString()}
+                      </td>
+                      <td className="p-2.5 text-right font-bold text-green-600">
+                        ₱{slip.netPay.toLocaleString()}
+                      </td>
+                      <td className="p-2.5 text-center">
+                        <div className="flex flex-col items-center gap-0.5">
+                          {getEmailStatusChip(slip.emailStatus, slip.emailError)}
+                          {slip.emailError && (
+                            <span
+                              className="max-w-[140px] truncate text-[9px] text-red-500"
+                              title={slip.emailError}
+                            >
+                              {slip.emailError}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-2.5 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {/* Send Individual Email Button */}
+                          <Button
+                            aria-label="Send Payslip Email"
+                            icon="refresh"
+                            intent="tertiary"
+                            isDisabled={isPending || Boolean(sendingSlipId)}
+                            isLoading={isSendingThis}
+                            size="sm"
+                            title={isSendingThis ? 'Sending email...' : 'Send Payslip Email'}
+                            onClick={() => handleSendSingleEmail(slip.id, empName)}
+                          />
+
+                          {/* Download PDF Payslip */}
+                          <Link href={API_ROUTES.downloadPayslip(slip.id)} target="_blank">
+                            <Button aria-label="Download PDF" icon="document-text" intent="ghost" size="sm" />
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
