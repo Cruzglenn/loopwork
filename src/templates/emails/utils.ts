@@ -148,19 +148,9 @@ export function templateHtml(
           <!-- Header Logo -->
           <tr>
             <td align="center" style="padding-bottom: 24px;">
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td valign="middle" style="padding-right: 12px;">
-                    <img src="https://eurielleivy.site/images/logo-icon-128.png" alt="Loopwork" width="38" height="38" style="display: block; width: 38px; height: 38px; border: 0;" />
-                  </td>
-                  <td valign="middle">
-                    <span style="font-size: 24px; font-weight: 900; color: #040760; letter-spacing: -0.5px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;" class="email-title">
-                      Loop<span style="color: #0A11EB;">work</span>
-                    </span>
-                    <span style="display: inline-block; margin-left: 8px; padding: 3px 8px; background-color: #0A11EB; color: #ffffff; font-size: 10px; font-weight: 800; border-radius: 0px; text-transform: uppercase; letter-spacing: 1px; vertical-align: middle;">HRIS</span>
-                  </td>
-                </tr>
-              </table>
+              <a href="https://eurielleivy.site" target="_blank" style="text-decoration: none;">
+                <img src="https://eygaannaqiztkkxfkpsh.supabase.co/storage/v1/object/public/photos/default-org-id/ChatGPT_Image_Aug_10__2026__04_12_04_AM.webp" alt="Loopwork" height="44" style="display: block; height: 44px; max-height: 44px; width: auto; border: 0;" />
+              </a>
             </td>
           </tr>
           <!-- Main Card (Sharp Corners) -->
