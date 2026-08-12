@@ -60,6 +60,15 @@ export function Toast({ toast }: Props): JSX.Element {
     };
   }, []);
 
+  const renderText = (label?: string) => {
+    if (!label) return null;
+    const translated = String(t(label));
+    if (translated.startsWith('toasts.')) {
+      return label;
+    }
+    return translated;
+  };
+
   return (
     <div
       aria-live="assertive"
@@ -71,8 +80,8 @@ export function Toast({ toast }: Props): JSX.Element {
       {toast.intent === 'success' && <Icon className="text-green-default" name="tick-circle" size={24} />}
       {toast.intent === 'error' && <Icon className="text-red-900" name="warning-2" size={24} />}
       <div>
-        <h6>{t(toast.label)}</h6>
-        {toast.description && <p>{t(toast.description)}</p>}
+        <h6>{renderText(toast.label)}</h6>
+        {toast.description && <p>{renderText(toast.description)}</p>}
       </div>
       <Button
         className="text-black/10 hover:text-black/50 border-none bg-transparent"
