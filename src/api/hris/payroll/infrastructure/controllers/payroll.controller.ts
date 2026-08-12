@@ -17,6 +17,7 @@ import {
   approvePayrollRunUseCase,
   markPayrollRunPaidUseCase,
   dispatchPayslipEmailsUseCase,
+  sendSinglePayslipEmailUseCase,
 } from '../../model/use-cases';
 
 export function payrollController(organization: OrganizationContext) {
@@ -41,6 +42,12 @@ export function payrollController(organization: OrganizationContext) {
     if (!run) throw new Error('Payroll run not found');
     const emailService = await emailSenderService();
     dispatchPayslipEmailsUseCase(repository, emailService)(run).catch(() => {});
+    return { success: true };
+  };
+
+  const sendSinglePayslipEmail = async (_checker: PermissionChecker, payslipId: CUID) => {
+    const emailService = await emailSenderService();
+    await sendSinglePayslipEmailUseCase(repository, emailService)(payslipId);
     return { success: true };
   };
 
@@ -108,6 +115,11 @@ export function payrollController(organization: OrganizationContext) {
       ResourceType.COMPANY_PAYROLL,
       PermissionAction.EDIT,
       resendPayrollRunEmails,
+    ),
+    sendSinglePayslipEmail: requirePermission(
+      ResourceType.COMPANY_PAYROLL,
+      PermissionAction.EDIT,
+      sendSinglePayslipEmail,
     ),
     updateSalaryConfig: requirePermission(
       ResourceType.COMPANY_PAYROLL,
