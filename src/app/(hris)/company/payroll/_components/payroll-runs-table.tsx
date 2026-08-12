@@ -3,10 +3,11 @@
 import { useState, useTransition } from 'react';
 import { type PayrollRunDto } from '@/api/hris/payroll/model/dtos';
 import { Button, Cell, Column, Row, Table, TableBody, TableHeader, Chip } from '@/lib/ui';
-import { type Columns, parseDate } from '@/shared';
+import { type Columns, parseDate, type PropsWithClassName, cn } from '@/shared';
 import { approvePayrollRunAction, markPayrollRunPaidAction } from '../_actions/manage-payroll-run.action';
 import { ExportModal } from './export-modal';
 import { PayrollRunDetailsModal } from './payroll-run-details-modal';
+import { PayrollRunsGridList } from './payroll-runs-grid-list';
 
 type Props = {
   runs: PayrollRunDto[];
@@ -22,7 +23,7 @@ const RUN_COLUMNS: Columns = {
   status: { label: 'payroll.runs.status' },
 };
 
-export function PayrollRunsTable({ runs }: Props) {
+export function PayrollRunsTable({ runs, className }: PropsWithClassName<Props>) {
   const [isPending, startTransition] = useTransition();
   const [selectedRunDetails, setSelectedRunDetails] = useState<PayrollRunDto | null>(null);
   const [selectedRunExport, setSelectedRunExport] = useState<PayrollRunDto | null>(null);
@@ -60,41 +61,57 @@ export function PayrollRunsTable({ runs }: Props) {
   const currentSelectedRun = runs.find((r) => r.id === selectedRunDetails?.id) || selectedRunDetails;
 
   return (
-    <>
-      <div className="shadow-xs overflow-hidden rounded-xl border border-gray-200 bg-white">
-        <Table aria-label="Payroll Runs & Batches">
+    <div className={cn('w-full', className)}>
+      {/* Mobile Card Grid View (< 1280px) */}
+      <PayrollRunsGridList
+        className="xl:hidden"
+        isPending={isPending}
+        runs={runs}
+        onApprove={handleApprove}
+        onMarkPaid={handleMarkPaid}
+        onSelectRunDetails={(run) => setSelectedRunDetails(run)}
+        onSelectRunExport={(run) => setSelectedRunExport(run)}
+      />
+
+      {/* Desktop Data Table (>= 1280px) */}
+      <div className="shadow-xs hidden overflow-x-auto rounded-xl border border-gray-200 bg-white xl:block">
+        <Table aria-label="Payroll Runs & Batches" className="w-full min-w-[900px]">
           <TableHeader columns={RUN_COLUMNS}>
             <Column aria-label="Actions" />
           </TableHeader>
           <TableBody>
             {runs.map((run) => (
               <Row key={run.id} id={run.id}>
-                <Cell truncate={false}>
+                <Cell className="min-w-[180px]" truncate={false}>
                   <button
-                    className="text-left font-bold text-gray-900 transition hover:text-blue-600"
+                    className="whitespace-nowrap text-left font-bold text-gray-900 transition hover:text-blue-600"
                     type="button"
                     onClick={() => setSelectedRunDetails(run)}
                   >
                     {run.name}
                   </button>
                 </Cell>
-                <Cell className="min-w-44 text-xs text-gray-600" truncate={false}>
+                <Cell className="min-w-[160px] whitespace-nowrap text-xs text-gray-600" truncate={false}>
                   {parseDate(run.periodStart, 'MMM DD')} - {parseDate(run.periodEnd, 'MMM DD, YYYY')}
                 </Cell>
-                <Cell truncate={false}>
+                <Cell className="min-w-[80px]" truncate={false}>
                   <span className="font-semibold text-gray-700">{run.totalPayslips}</span>
                 </Cell>
-                <Cell truncate={false}>₱{run.totalGross.toLocaleString()}</Cell>
-                <Cell className="text-red-600" truncate={false}>
+                <Cell className="min-w-[110px] whitespace-nowrap" truncate={false}>
+                  ₱{run.totalGross.toLocaleString()}
+                </Cell>
+                <Cell className="min-w-[110px] whitespace-nowrap text-red-600" truncate={false}>
                   -₱{run.totalDeductions.toLocaleString()}
                 </Cell>
-                <Cell className="font-bold text-green-600" truncate={false}>
+                <Cell className="min-w-[110px] whitespace-nowrap font-bold text-green-600" truncate={false}>
                   ₱{run.totalNet.toLocaleString()}
                 </Cell>
-                <Cell truncate={false}>{getStatusChip(run.status)}</Cell>
+                <Cell className="min-w-[100px]" truncate={false}>
+                  {getStatusChip(run.status)}
+                </Cell>
 
                 {/* Actions Column */}
-                <Cell className="pr-2 text-right" truncate={false}>
+                <Cell className="min-w-[150px] pr-2 text-right" truncate={false}>
                   <div className="flex items-center justify-end gap-1.5">
                     {/* View Details Button */}
                     <Button
@@ -159,6 +176,6 @@ export function PayrollRunsTable({ runs }: Props) {
         run={selectedRunExport}
         onOpenChange={(open) => !open && setSelectedRunExport(null)}
       />
-    </>
+    </div>
   );
 }

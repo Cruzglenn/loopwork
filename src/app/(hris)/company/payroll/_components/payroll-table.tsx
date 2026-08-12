@@ -35,39 +35,45 @@ export function PayrollTable({ payslips, className }: PropsWithClassName<Props>)
   };
 
   return (
-    <Table aria-label={t('payroll.title')} className={cn(className)}>
-      <TableHeader columns={PAYROLL_COLUMNS}>
-        <Column />
-      </TableHeader>
-      <TableBody>
-        {payslips.map((item) => (
-          <Row key={item.id} id={item.id}>
-            <Cell truncate={false}>
-              <span className="font-medium">
-                {item.employee ? `${item.employee.firstName} ${item.employee.lastName}` : 'Employee'}
-              </span>
-            </Cell>
-            <Cell className="min-w-44" truncate={false}>
-              {parseDate(item.periodStart, 'MMM DD')} - {parseDate(item.periodEnd, 'MMM DD, YYYY')}
-            </Cell>
-            <Cell truncate={false}>₱{item.grossPay.toLocaleString()}</Cell>
-            <Cell className="text-red-600" truncate={false}>
-              -₱{item.deductionsTotal.toLocaleString()}
-            </Cell>
-            <Cell className="font-bold text-blue-600" truncate={false}>
-              ₱{item.netPay.toLocaleString()}
-            </Cell>
-            <Cell truncate={false}>{getStatusChip(item.status)}</Cell>
-            <Cell className="pr-0 text-right" truncate={false}>
-              <Link href={API_ROUTES.downloadPayslip(item.id)} target="_blank">
-                <Button icon="document-text" intent="tertiary" size="sm">
-                  {t('payroll.table.downloadPdf')}
-                </Button>
-              </Link>
-            </Cell>
-          </Row>
-        ))}
-      </TableBody>
-    </Table>
+    <div className={cn('overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-xs', className)}>
+      <Table aria-label={t('payroll.title')} className="w-full min-w-[850px]">
+        <TableHeader columns={PAYROLL_COLUMNS}>
+          <Column />
+        </TableHeader>
+        <TableBody>
+          {payslips.map((item) => (
+            <Row key={item.id} id={item.id}>
+              <Cell className="min-w-[180px]" truncate={false}>
+                <span className="font-medium">
+                  {item.employee ? `${item.employee.firstName} ${item.employee.lastName}` : 'Employee'}
+                </span>
+              </Cell>
+              <Cell className="min-w-[160px] whitespace-nowrap text-xs text-gray-600" truncate={false}>
+                {parseDate(item.periodStart, 'MMM DD')} - {parseDate(item.periodEnd, 'MMM DD, YYYY')}
+              </Cell>
+              <Cell className="min-w-[110px] whitespace-nowrap" truncate={false}>
+                ₱{item.grossPay.toLocaleString()}
+              </Cell>
+              <Cell className="min-w-[110px] whitespace-nowrap text-red-600" truncate={false}>
+                -₱{item.deductionsTotal.toLocaleString()}
+              </Cell>
+              <Cell className="min-w-[110px] whitespace-nowrap font-bold text-blue-600" truncate={false}>
+                ₱{item.netPay.toLocaleString()}
+              </Cell>
+              <Cell className="min-w-[100px]" truncate={false}>
+                {getStatusChip(item.status)}
+              </Cell>
+              <Cell className="min-w-[140px] pr-2 text-right" truncate={false}>
+                <Link href={API_ROUTES.downloadPayslip(item.id)} target="_blank">
+                  <Button icon="document-text" intent="tertiary" size="sm">
+                    {t('payroll.table.downloadPdf')}
+                  </Button>
+                </Link>
+              </Cell>
+            </Row>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
