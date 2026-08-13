@@ -10,6 +10,13 @@ const MIME_TYPES: Record<string, string> = {
   '.png': 'image/png',
   '.webp': 'image/webp',
   '.svg': 'image/svg+xml',
+  '.gif': 'image/gif',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.doc': 'application/msword',
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.xls': 'application/vnd.ms-excel',
+  '.csv': 'text/csv',
+  '.txt': 'text/plain',
 };
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -22,7 +29,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     throw new ApiError(404, API_ERROR_MESSAGES.DOCUMENTS.NOT_FOUND(id));
   }
 
-  const ext = path.extname(document.filePath);
+  const ext = path.extname(document.filePath).toLowerCase();
   const fileName = document.filePath.split('/').pop();
 
   // Convert database path format (/uploads/...) to actual filesystem path (_uploads/...)
@@ -31,10 +38,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     : document.filePath.replace(/^\/uploads\//, '_uploads/');
   const buffer = await api.documents.getFile('supabase-storage', actualFilePath);
 
+  if (!buffer) {
+    throw new ApiError(404, 'File not found');
+  }
+
+  const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+  const isViewable = VIEWABLE_FILE_EXTENSIONS.has(ext);
+
   return new Response(buffer as unknown as BodyInit, {
     headers: {
-      'Content-Type': MIME_TYPES[ext],
-      'Content-Disposition': `${VIEWABLE_FILE_EXTENSIONS.has(ext) ? 'inline' : 'attachment'}; ${encodeFilenameForHeader(fileName)}`,
+      'Content-Type': contentType,
+      'Content-Disposition': `${isViewable ? 'inline' : 'attachment'}; ${encodeFilenameForHeader(fileName)}`,
     },
   });
 }

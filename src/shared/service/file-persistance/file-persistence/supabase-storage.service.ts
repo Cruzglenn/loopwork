@@ -115,7 +115,6 @@ export function supabaseStorageService(): FileUpload {
         const bucket = pathWithoutPrefix.substring(0, firstSlash);
         const objectPath = pathWithoutPrefix.substring(firstSlash + 1);
 
-        const fileUrl = `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${objectPath}`;
         const headers: Record<string, string> = {};
 
         if (SUPABASE_ANON_KEY) {
@@ -123,10 +122,16 @@ export function supabaseStorageService(): FileUpload {
           headers['apikey'] = SUPABASE_ANON_KEY;
         }
 
-        const response = await fetch(fileUrl, { headers });
+        let response = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${objectPath}`, { headers });
 
         if (!response.ok) {
-          logger.error({ status: response.status, fileUrl }, 'Supabase getFile failed');
+          response = await fetch(`${SUPABASE_URL}/storage/v1/object/public/${bucket}/${objectPath}`, {
+            headers,
+          });
+        }
+
+        if (!response.ok) {
+          logger.error({ status: response.status, filePath }, 'Supabase getFile failed');
           return fallback.getFile(filePath, onError);
         }
 
