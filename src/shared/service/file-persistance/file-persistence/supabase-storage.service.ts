@@ -61,7 +61,7 @@ export function supabaseStorageService(): FileUpload {
         return fallback.uploadFile(organizationId, file, dirPath, onError);
       }
 
-      // Return path identifier formatted for DutyDuke document DB records
+      // Return path identifier formatted for Loopwork document DB records
       return `supabase://${bucket}/${objectPath}`;
     } catch (err) {
       logger.error({ err }, 'Supabase Storage upload error');

@@ -55,4 +55,4 @@ export * from './table-radio-button';
 export * from './day-nav';
 export * from './changelog';
 export * from './not-found-content';
-export * from './dutyduke-logo';
+export * from './loopwork-logo';

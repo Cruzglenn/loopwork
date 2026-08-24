@@ -6,7 +6,7 @@
 @layer base {
   :root {
     color-scheme: light;
-    /* Palette: Royal Cobalt & Slate ("Unified Brand Harmony") - Matches DutyDuke / Loopwork Logo */
+    /* Palette: Royal Cobalt & Slate ("Unified Brand Harmony") - Matches Loopwork Logo */
     --background: #f8fafc;
     --text: #0f172a;
     --accent: #2563eb;

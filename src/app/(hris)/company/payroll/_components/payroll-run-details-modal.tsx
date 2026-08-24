@@ -8,10 +8,7 @@ import { Button, Chip, Modal } from '@/lib/ui';
 import { ModalHeader } from '@/lib/ui/components/modal/modal-header';
 import { useToast } from '@/lib/ui/hooks';
 import { API_ROUTES, parseDate } from '@/shared';
-import {
-  resendPayrollRunEmailsAction,
-  sendSinglePayslipEmailAction,
-} from '../_actions/manage-payroll-run.action';
+import { sendSinglePayslipEmailAction } from '../_actions/manage-payroll-run.action';
 
 type Props = {
   run: PayrollRunDto | null;

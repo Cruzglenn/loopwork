@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'DutyDuke HRIS',
-    short_name: 'DutyDuke',
-    description: 'DutyDuke Modern HR Management System',
+    name: 'Loopwork HRIS',
+    short_name: 'Loopwork',
+    description: 'Loopwork Modern HR Management System',
     start_url: '/',
     display: 'standalone',
     background_color: '#F8FAFC',
